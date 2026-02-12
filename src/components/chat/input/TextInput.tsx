@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 
 interface TextInputProps {
-  textareaRef: React.RefObject<HTMLTextAreaElement>;
+  textareaRef: any;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
