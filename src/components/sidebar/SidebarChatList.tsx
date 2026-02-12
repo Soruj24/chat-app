@@ -45,7 +45,7 @@ export function SidebarChatList({
   return (
     <div className="divide-y divide-gray-50 dark:divide-gray-800/30">
       {pinnedChats.length > 0 && (
-        <div className="pb-2">
+        <div className="pb-2" key="pinned-chats">
           <div className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
             <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
             Pinned
@@ -64,7 +64,7 @@ export function SidebarChatList({
         </div>
       )}
 
-      <div>
+      <div key="other-chats">
         {pinnedChats.length > 0 && otherChats.length > 0 && (
           <div className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
             All Messages
@@ -85,7 +85,7 @@ export function SidebarChatList({
 
       {/* All Users Section */}
       {allUsers.length > 0 && (
-        <div className="pt-2">
+        <div className="pt-2" key="all-users">
           <div className="px-4 py-2 text-[10px] font-black text-blue-500 dark:text-blue-400 uppercase tracking-widest flex items-center gap-2">
             <Users className="w-3 h-3" />
             All Users

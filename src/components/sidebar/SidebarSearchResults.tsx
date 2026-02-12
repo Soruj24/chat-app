@@ -29,7 +29,7 @@ export function SidebarSearchResults({ results, activeId }: SidebarSearchResults
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
       {/* 1. Chats Section */}
       {results.chats.length > 0 && (
-        <div className="mb-4">
+        <div className="mb-4" key="search-chats">
           <SectionHeader title="Conversations" />
           {results.chats.map((chat) => (
             <ChatListItem key={chat.id} chat={chat} isActive={activeId === chat.id} />
@@ -39,7 +39,7 @@ export function SidebarSearchResults({ results, activeId }: SidebarSearchResults
 
       {/* 2. Global Users Section */}
       {results.users.length > 0 && (
-        <div className="mb-4">
+        <div className="mb-4" key="search-users">
           <SectionHeader title="Global Users" />
           {results.users.map((user) => (
             <UserSearchResult key={user.id} user={user} />
@@ -49,11 +49,11 @@ export function SidebarSearchResults({ results, activeId }: SidebarSearchResults
 
       {/* 3. Global Messages Section */}
       {results.messages.length > 0 && (
-        <div className="mb-4">
+        <div className="mb-4" key="search-messages">
           <SectionHeader title="Messages" />
           {results.messages.map(({ chatId, message }, idx) => (
             <MessageSearchResult 
-              key={`${chatId}-${message.id}-${idx}`}
+              key={`${chatId}-${message.id || idx}-${idx}`}
               chatId={chatId}
               message={message}
               chatName={chats.find(c => c.id === chatId)?.name}

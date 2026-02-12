@@ -67,8 +67,8 @@ export function useSidebar(searchQuery: string, filter: string) {
                 username?: string;
                 avatar?: string;
                 status?: string;
-              }) => ({
-                id: u._id || u.id,
+              }, index: number) => ({
+                id: u._id || u.id || `user-${index}`,
                 name: u.name,
                 username: u.username,
                 avatar: u.avatar,
@@ -126,14 +126,14 @@ export function useSidebar(searchQuery: string, filter: string) {
               isArchived?: boolean;
               isMuted?: boolean;
               pinnedMessageIds?: string[];
-            }) => {
+            }, index: number) => {
               if (!chat.participants) return null;
               const otherParticipant = chat.participants.find(
                 (p: { _id?: string; id?: string }) =>
                   (p._id?.toString() || p.id?.toString()) !== user.id,
               );
               return {
-                id: chat._id,
+                id: chat._id || chat.id || `chat-${index}`,
                 otherParticipantId:
                   chat.type === "private"
                     ? otherParticipant?._id?.toString() ||
@@ -188,7 +188,7 @@ export function useSidebar(searchQuery: string, filter: string) {
               };
             },
           );
-          dispatch(setChats(mappedChats));
+          dispatch(setChats(mappedChats.filter(Boolean)));
         }
       } catch (error) {
         console.error("Failed to fetch chats:", error);
@@ -224,8 +224,8 @@ export function useSidebar(searchQuery: string, filter: string) {
               username?: string;
               avatar?: string;
               status?: string;
-            }) => ({
-              id: u._id || u.id || "",
+            }, index: number) => ({
+              id: u._id || u.id || `search-user-${index}`,
               name: u.name || "",
               username: u.username || "",
               avatar: u.avatar || "",
@@ -243,7 +243,19 @@ export function useSidebar(searchQuery: string, filter: string) {
         );
         if (messagesResponse.ok) {
           const data = await messagesResponse.json();
-          setGlobalMessages(data);
+          setGlobalMessages(
+            data.map((m: {
+              id?: string;
+              _id?: string;
+              text?: string;
+              timestamp?: string;
+              sender?: string | { id?: string; _id?: string };
+              status?: string;
+            }, index: number) => ({
+              ...m,
+              id: m._id || m.id || `msg-${index}`,
+            })),
+          );
         }
       } catch (error) {
         console.error("Failed to perform search:", error);
