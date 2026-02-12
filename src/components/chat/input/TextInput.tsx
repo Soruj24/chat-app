@@ -1,10 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { RefObject } from "react";
+import { Ref } from "react";
 
 interface TextInputProps {
-  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
+  textareaRef: Ref<HTMLTextAreaElement>;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
