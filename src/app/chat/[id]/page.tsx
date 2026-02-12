@@ -1,0 +1,422 @@
+"use client";
+
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/store/store";
+import { useEffect, useMemo } from "react";
+import { setActiveChat } from "@/store/slices/chatSlice";
+import { Lightbox } from "@/components/chat/Lightbox";
+import { ContextMenu } from "@/components/chat/ContextMenu";
+import { socketService } from "@/lib/socket/socket-client";
+import { MessageInput } from "@/components/chat/MessageInput";
+import { ChatInfoPanel } from "@/components/chat/ChatInfoPanel";
+import { ForwardModal } from "@/components/chat/ForwardModal";
+import { AnimatePresence } from "framer-motion";
+import { ChatHeader } from "@/components/chat-page/ChatHeader";
+import { ChatSearch } from "@/components/chat-page/ChatSearch";
+import { PinnedMessagesBar } from "@/components/chat-page/PinnedMessagesBar";
+import { MessageList } from "@/components/chat-page/MessageList";
+import { ScrollToBottomButton } from "@/components/chat-page/ScrollToBottomButton";
+import { EmojiPicker } from "@/components/chat-page/EmojiPicker";
+import { useChatMessages } from "@/hooks/useChatMessages";
+import { useChatInteractions } from "@/hooks/useChatInteractions";
+import { useChatState } from "@/hooks/useChatState";
+
+export default function ChatPage() {
+  const { id } = useParams();
+  const dispatch = useDispatch();
+  const searchParams = useSearchParams();
+  const msgId = searchParams.get("msgId");
+  const { chats } = useSelector((state: RootState) => state.chat);
+  const { user, token } = useSelector((state: RootState) => state.auth);
+  const chat = useMemo(() => chats.find((c) => c.id === id), [chats, id]);
+
+  useEffect(() => {
+    if (id) {
+      dispatch(setActiveChat(id as string));
+    }
+    return () => {
+      dispatch(setActiveChat(null));
+    };
+  }, [id, dispatch]);
+
+  const {
+    localMessages,
+    setLocalMessages,
+    filteredMessages,
+    groupedMessages,
+    isLoading,
+    isPaginationLoading,
+    searchQuery,
+    setSearchQuery,
+    searchIndex,
+    setSearchIndex,
+    highlightedMessageId,
+    messageRefs,
+    scrollToMessage,
+    navigateSearch,
+    loadMoreMessages,
+  } = useChatMessages(id as string);
+
+  const {
+    showEmojiPicker,
+    setShowEmojiPicker,
+    replyingTo,
+    setReplyingTo,
+    forwardingMessage,
+    setForwardingMessage,
+    contextMenu,
+    setContextMenu,
+    lightboxUrl,
+    setLightboxUrl,
+    showInfo,
+    setShowInfo,
+    isSearchOpen,
+    setIsSearchOpen,
+    pinnedMessages,
+    setPinnedMessages,
+    currentPinnedIndex,
+    setCurrentPinnedIndex,
+    starredMessageIds,
+    handlePinMessage,
+    handleStarMessage,
+    handleDeleteMessage,
+  } = useChatInteractions(id as string);
+
+  // Sync pinned messages when localMessages or chat changes
+  useEffect(() => {
+    if (chat?.pinnedMessages && localMessages.length > 0) {
+      const pinnedIds = new Set(
+        chat.pinnedMessages.map((id: any) => id.toString()),
+      );
+      const pinned = localMessages.filter((m) => pinnedIds.has(m.id));
+      setPinnedMessages(pinned);
+    }
+  }, [chat?.pinnedMessages, localMessages, setPinnedMessages]);
+
+  const {
+    inputValue,
+    setInputValue,
+    showScrollToBottom,
+    unreadCount,
+    isOnline,
+    isTyping,
+    typingUser,
+    chatWallpaper,
+    setChatWallpaper,
+    messagesEndRef,
+    scrollContainerRef,
+    scrollToBottom,
+    handleSendMessage,
+    handleScroll,
+  } = useChatState(chat, setLocalMessages, setReplyingTo, replyingTo);
+
+  useEffect(() => {
+    if (msgId && !isLoading) {
+      scrollToMessage(msgId);
+    }
+  }, [msgId, isLoading]);
+
+  const handleForward = async (chatIds: string[]) => {
+    if (!forwardingMessage || !token) return;
+
+    try {
+      await Promise.all(
+        chatIds.map(async (chatId) => {
+          const response = await fetch("/api/messages", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              chatId,
+              text: forwardingMessage.text,
+              type: forwardingMessage.type || "text",
+              isForwarded: true,
+            }),
+          });
+
+          if (response.ok) {
+            const savedMsg = await response.json();
+            const targetChat = chats.find((c) => c.id === chatId);
+
+            const finalMessage = {
+              id: savedMsg._id,
+              senderId: user?.id,
+              senderName: user?.name,
+              text: savedMsg.text,
+              timestamp: new Date(savedMsg.timestamp).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              date: "Today",
+              status: "sent",
+              isMe: true,
+              type: savedMsg.type,
+              isForwarded: true,
+            };
+
+            // Emit to socket server for real-time delivery
+            const receiverId =
+              targetChat?.type === "private" &&
+              Array.isArray(targetChat.participants)
+                ? targetChat.participants.find(
+                    (p: any) =>
+                      (p._id?.toString() || p.id?.toString() || p) !== user?.id,
+                  )
+                : undefined;
+
+            socketService.emit("send_message", {
+              chatId,
+              message: finalMessage,
+              receiverId,
+            });
+          }
+        }),
+      );
+      setForwardingMessage(null);
+    } catch (error) {
+      console.error("Failed to forward message:", error);
+    }
+  };
+
+  const handleDelete = async (message: any) => {
+    await handleDeleteMessage(message.id, () => {
+      setLocalMessages((prev) => prev.filter((m) => m.id !== message.id));
+      setContextMenu(null);
+    });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [localMessages]);
+
+  if (!chat) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        Chat not found
+      </div>
+    );
+  }
+
+  const starredMessages = localMessages.filter((m) =>
+    starredMessageIds.has(m.id),
+  );
+
+  const handleReaction = async (message: any, emoji: string) => {
+    if (!chat || !id || !token) return;
+
+    // Optimistic Update
+    setLocalMessages((prev) =>
+      prev.map((m) => {
+        if (m.id === message.id) {
+          const reactions = [...(m.reactions || [])];
+          const existingIdx = reactions.findIndex((r) => r.emoji === emoji);
+
+          if (existingIdx > -1) {
+            const reaction = { ...reactions[existingIdx] };
+            if (reaction.me) {
+              // Remove my reaction
+              if (reaction.count > 1) {
+                reactions[existingIdx] = {
+                  ...reaction,
+                  count: reaction.count - 1,
+                  me: false,
+                };
+              } else {
+                reactions.splice(existingIdx, 1);
+              }
+            } else {
+              // Add my reaction to existing
+              reactions[existingIdx] = {
+                ...reaction,
+                count: reaction.count + 1,
+                me: true,
+              };
+            }
+          } else {
+            // New emoji reaction
+            reactions.push({ emoji, count: 1, me: true });
+          }
+          return { ...m, reactions };
+        }
+        return m;
+      }),
+    );
+
+    try {
+      const response = await fetch("/api/messages/react", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ messageId: message.id, emoji }),
+      });
+
+      if (response.ok) {
+        const updatedMsg = await response.json();
+        // Emit socket event for real-time
+        socketService.emit("message_reaction", {
+          chatId: id,
+          messageId: message.id,
+          reactions: updatedMsg.reactions,
+          userId: user?.id,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to react:", error);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-full bg-[#f0f2f5] dark:bg-gray-950 relative overflow-hidden">
+      <ChatHeader
+        chat={chat}
+        isOnline={isOnline}
+        isSearchOpen={isSearchOpen}
+        setIsSearchOpen={setIsSearchOpen}
+        setShowInfo={setShowInfo}
+      />
+
+      <PinnedMessagesBar
+        pinnedMessages={pinnedMessages}
+        currentPinnedIndex={currentPinnedIndex}
+        onNavigate={() => {
+          const msg = pinnedMessages[currentPinnedIndex];
+          scrollToMessage(msg.id);
+          setCurrentPinnedIndex((prev) => (prev + 1) % pinnedMessages.length);
+        }}
+        onClear={() => setPinnedMessages([])}
+      />
+
+      <ChatSearch
+        isOpen={isSearchOpen}
+        query={searchQuery}
+        setQuery={(q) => {
+          setSearchQuery(q);
+          setSearchIndex(0);
+        }}
+        filteredCount={filteredMessages.length}
+        currentIndex={searchIndex}
+        onNavigate={navigateSearch}
+        onClose={() => {
+          setIsSearchOpen(false);
+          setSearchQuery("");
+          setSearchIndex(0);
+        }}
+      />
+
+      <MessageList
+        scrollContainerRef={scrollContainerRef}
+        onScroll={() =>
+          handleScroll(isPaginationLoading, isLoading, loadMoreMessages)
+        }
+        chatWallpaper={chatWallpaper}
+        isPaginationLoading={isPaginationLoading}
+        isLoading={isLoading}
+        localMessages={localMessages}
+        groupedMessages={groupedMessages}
+        messageRefs={messageRefs}
+        highlightedMessageId={highlightedMessageId}
+        starredMessageIds={starredMessageIds}
+        pinnedMessages={pinnedMessages}
+        searchQuery={searchQuery}
+        chatType={chat.type}
+        chatId={chat.id}
+        onImageClick={setLightboxUrl}
+        onReply={setReplyingTo}
+        onForward={setForwardingMessage}
+        onLike={(message) => handleReaction(message, "❤️")}
+        onReaction={handleReaction}
+        onContextMenu={(e, message) => {
+          e.preventDefault();
+          setContextMenu({
+            x: e.clientX,
+            y: e.clientY,
+            message,
+          });
+        }}
+        messagesEndRef={messagesEndRef}
+        isTyping={isTyping}
+        typingUser={typingUser}
+      />
+
+      <ScrollToBottomButton
+        isVisible={showScrollToBottom}
+        unreadCount={unreadCount}
+        onClick={scrollToBottom}
+      />
+
+      <EmojiPicker
+        isOpen={showEmojiPicker}
+        onSelect={(emoji) => {
+          setInputValue((prev) => prev + emoji);
+          setShowEmojiPicker(false);
+        }}
+      />
+
+      <MessageInput
+        value={inputValue}
+        onChange={setInputValue}
+        onSendMessage={handleSendMessage}
+        replyingTo={replyingTo}
+        onCancelReply={() => setReplyingTo(null)}
+        showEmojiPicker={showEmojiPicker}
+        setShowEmojiPicker={setShowEmojiPicker}
+      />
+
+      <Lightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
+
+      <AnimatePresence>
+        {forwardingMessage && (
+          <ForwardModal
+            message={forwardingMessage}
+            onClose={() => setForwardingMessage(null)}
+            onForward={handleForward}
+          />
+        )}
+      </AnimatePresence>
+
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          isPinned={
+            !!pinnedMessages.find((m) => m.id === contextMenu.message.id)
+          }
+          isStarred={starredMessageIds.has(contextMenu.message.id)}
+          onClose={() => setContextMenu(null)}
+          onReply={() => setReplyingTo(contextMenu.message)}
+          onForward={() => setForwardingMessage(contextMenu.message)}
+          onPin={() => handlePinMessage(contextMenu.message)}
+          onStar={() => handleStarMessage(contextMenu.message)}
+          onDelete={() => handleDelete(contextMenu.message)}
+          onCopy={() => {
+            navigator.clipboard.writeText(contextMenu.message.text || "");
+          }}
+          onReact={(emoji) => {
+            handleReaction(contextMenu.message, emoji);
+            setContextMenu(null);
+          }}
+        />
+      )}
+
+      <AnimatePresence>
+        {showInfo && (
+          <ChatInfoPanel
+            chat={{ ...chat, wallpaper: chatWallpaper }}
+            onClose={() => setShowInfo(false)}
+            onWallpaperChange={setChatWallpaper}
+            starredMessages={starredMessages}
+            onMessageClick={(msgId) => {
+              scrollToMessage(msgId);
+              setShowInfo(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
