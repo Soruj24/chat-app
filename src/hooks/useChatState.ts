@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Message } from "@/lib/types";
+import { Chat, Message } from "@/lib/types";
 import { socketService } from "@/lib/socket/socket-client";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -13,20 +13,7 @@ import {
 import { RootState } from "@/store/store";
 
 export function useChatState(
-  chat: {
-    id: string;
-    type: "private" | "group" | "individual";
-    name?: string;
-    avatar?: string;
-    wallpaper?: string;
-    members?: {
-      id?: string;
-      _id?: string;
-      name?: string;
-      avatar?: string;
-    }[];
-    pinnedMessageIds?: string[];
-  },
+  chat: Chat | undefined,
   setLocalMessages: (fn: (prev: Message[]) => Message[]) => void,
   setReplyingTo: (msg: Message | null) => void,
   replyingTo: Message | null,
@@ -53,16 +40,17 @@ export function useChatState(
 
   useEffect(() => {
     if (!chat?.id || !user?.id) return;
+    const currentChatId = chat.id;
 
     // Mark as read and set as active chat when entering
-    dispatch(markAsRead(chat.id));
-    dispatch(setActiveChat(chat.id));
+    dispatch(markAsRead(currentChatId));
+    dispatch(setActiveChat(currentChatId));
 
     socketService.connect();
 
     // Join user room and specific chat room
     socketService.emit("join", user.id);
-    socketService.emit("join_chat", chat.id);
+    socketService.emit("join_chat", currentChatId);
 
     const handleReceiveMessage = (message: Message) => {
       // If the message belongs to this chat and it's not from me
@@ -72,7 +60,7 @@ export function useChatState(
           return [...prev, { ...message, isMe: false }];
         });
         dispatch(
-          addMessage({ chatId: chat.id, message: { ...message, isMe: false } }),
+          addMessage({ chatId: currentChatId, message: { ...message, isMe: false } }),
         );
 
         // Handle unread count and scrolling
@@ -99,7 +87,7 @@ export function useChatState(
       userId: string;
       isTyping: boolean;
     }) => {
-      if (typingChatId === chat.id && typingUserId !== user.id) {
+      if (typingChatId === currentChatId && typingUserId !== user.id) {
         setIsTyping(typingStatus);
         setIsOnline(true);
 
@@ -110,8 +98,7 @@ export function useChatState(
           } else {
             // In a group, try to find the user name from members
             const member = chat.members?.find(
-              (m: { id?: string; _id?: string; name?: string }) =>
-                (m.id || m._id || m).toString() === typingUserId,
+              (m) => (m.id || m._id || m).toString() === typingUserId,
             );
             setTypingUser(member?.name || "Someone");
           }
@@ -179,7 +166,7 @@ export function useChatState(
 
       dispatch(
         updateChat({
-          chatId: chat.id,
+          chatId: currentChatId,
           updates: { pinnedMessageIds: newPinnedMessages },
         }),
       );
@@ -209,7 +196,7 @@ export function useChatState(
     );
 
     return () => {
-      socketService.emit("leave_chat", chat.id);
+      socketService.emit("leave_chat", currentChatId);
       socketService.off("receive_message", handleReceiveMessage);
       socketService.off("user_typing", handleTyping);
       socketService.off("message_reaction");
@@ -222,16 +209,17 @@ export function useChatState(
 
   useEffect(() => {
     if (!chat?.id || !user?.id) return;
+    const currentChatId = chat.id;
 
     if (inputValue.trim()) {
       socketService.emit("typing", {
-        chatId: chat.id,
+        chatId: currentChatId,
         userId: user.id,
         isTyping: true,
       });
     } else {
       socketService.emit("typing", {
-        chatId: chat.id,
+        chatId: currentChatId,
         userId: user.id,
         isTyping: false,
       });
@@ -239,7 +227,7 @@ export function useChatState(
 
     const timer = setTimeout(() => {
       socketService.emit("typing", {
-        chatId: chat.id,
+        chatId: currentChatId,
         userId: user.id,
         isTyping: false,
       });
@@ -248,7 +236,7 @@ export function useChatState(
     return () => {
       clearTimeout(timer);
       socketService.emit("typing", {
-        chatId: chat.id,
+        chatId: currentChatId,
         userId: user.id,
         isTyping: false,
       });
@@ -285,7 +273,7 @@ export function useChatState(
       setLocalMessages((prev) => [...prev, newMessage]);
       setInputValue("");
       socketService.emit("typing", {
-        chatId: chat.id,
+        chatId: chatId,
         userId: user?.id || "me",
         isTyping: false,
       });
@@ -327,7 +315,7 @@ export function useChatState(
 
           // Emit to socket server for real-time delivery
           const receiverId =
-            (chat.type === "private" || chat.type === "individual") &&
+            chat && (chat.type === "private" || chat.type === "individual") &&
             Array.isArray(chat.members)
               ? chat.members.find(
                   (m) => (m.id || m._id || m).toString() !== (user?.id || "me"),
