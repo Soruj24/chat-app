@@ -10,7 +10,7 @@ interface SidebarChatListProps {
   pinnedChats: Chat[];
   otherChats: Chat[];
   allUsers?: User[];
-  activeId?: string;
+  activeId?: string | null;
   onPin: (id: string) => void;
   onMute: (id: string) => void;
   onArchive: (id: string) => void;

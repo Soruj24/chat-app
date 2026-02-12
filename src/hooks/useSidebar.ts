@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
 import { setChats, updateChat, removeChat } from "@/store/slices/chatSlice";
+import { Chat, User, Message } from "@/lib/types";
 
 export function useSidebar(searchQuery: string, filter: string) {
   const { chats } = useSelector((state: RootState) => state.chat);
@@ -14,39 +15,14 @@ export function useSidebar(searchQuery: string, filter: string) {
   // This hook now only focuses on filtering and managing the UI state of the sidebar
 
   // Local state for search results
-  const [globalUsers, setGlobalUsers] = useState<
-    {
-      id?: string;
-      _id?: string;
-      name?: string;
-      username?: string;
-      avatar?: string;
-      status?: string;
-    }[]
-  >([]);
+  const [globalUsers, setGlobalUsers] = useState<User[]>([]);
   const [globalMessages, setGlobalMessages] = useState<
     {
-      id?: string;
-      _id?: string;
-      text?: string;
-      timestamp?: string;
-      status?: string;
-      sender?: {
-        id?: string;
-        _id?: string;
-      };
+      chatId: string;
+      message: Message;
     }[]
   >([]);
-  const [allUsers, setAllUsers] = useState<
-    {
-      id?: string;
-      _id?: string;
-      name?: string;
-      username?: string;
-      avatar?: string;
-      status?: string;
-    }[]
-  >([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
 
   // Fetch all users on mount
   useEffect(() => {
@@ -60,14 +36,17 @@ export function useSidebar(searchQuery: string, filter: string) {
           const data = await response.json();
           setAllUsers(
             data.map(
-              (u: {
-                id?: string;
-                _id?: string;
-                name?: string;
-                username?: string;
-                avatar?: string;
-                status?: string;
-              }, index: number) => ({
+              (
+                u: {
+                  id?: string;
+                  _id?: string;
+                  name?: string;
+                  username?: string;
+                  avatar?: string;
+                  status?: string;
+                },
+                index: number,
+              ) => ({
                 id: u._id || u.id || `user-${index}`,
                 name: u.name,
                 username: u.username,
@@ -98,35 +77,38 @@ export function useSidebar(searchQuery: string, filter: string) {
           const data = await response.json();
           // Map MongoDB data to frontend type if needed
           const mappedChats = data.map(
-            (chat: {
-              id?: string;
-              _id?: string;
-              type?: string;
-              name?: string;
-              avatar?: string;
-              participants?: {
+            (
+              chat: {
                 id?: string;
                 _id?: string;
+                type?: string;
                 name?: string;
                 avatar?: string;
-                username?: string;
-                status?: string;
-              }[];
-              lastMessage?: {
-                text?: string;
-                timestamp?: string;
-                status?: string;
-                sender?: {
+                participants?: {
                   id?: string;
                   _id?: string;
+                  name?: string;
+                  avatar?: string;
+                  username?: string;
+                  status?: string;
+                }[];
+                lastMessage?: {
+                  text?: string;
+                  timestamp?: string;
+                  status?: string;
+                  sender?: {
+                    id?: string;
+                    _id?: string;
+                  };
                 };
-              };
-              unreadCount?: number;
-              isPinned?: boolean;
-              isArchived?: boolean;
-              isMuted?: boolean;
-              pinnedMessageIds?: string[];
-            }, index: number) => {
+                unreadCount?: number;
+                isPinned?: boolean;
+                isArchived?: boolean;
+                isMuted?: boolean;
+                pinnedMessageIds?: string[];
+              },
+              index: number,
+            ) => {
               if (!chat.participants) return null;
               const otherParticipant = chat.participants.find(
                 (p: { _id?: string; id?: string }) =>
@@ -217,20 +199,25 @@ export function useSidebar(searchQuery: string, filter: string) {
         if (usersResponse.ok) {
           const data = await usersResponse.json();
           setGlobalUsers(
-            data.map((u: {
-              id?: string;
-              _id?: string;
-              name?: string;
-              username?: string;
-              avatar?: string;
-              status?: string;
-            }, index: number) => ({
-              id: u._id || u.id || `search-user-${index}`,
-              name: u.name || "",
-              username: u.username || "",
-              avatar: u.avatar || "",
-              status: u.status || "offline",
-            })),
+            data.map(
+              (
+                u: {
+                  _id?: string;
+                  id?: string;
+                  name?: string;
+                  username?: string;
+                  avatar?: string;
+                  status?: string;
+                },
+                index: number,
+              ) => ({
+                id: u._id || u.id || `search-user-${index}`,
+                name: u.name || u.username || "Unknown",
+                username: u.username,
+                avatar: u.avatar || "",
+                status: u.status || "offline",
+              }),
+            ),
           );
         }
 
@@ -244,16 +231,38 @@ export function useSidebar(searchQuery: string, filter: string) {
         if (messagesResponse.ok) {
           const data = await messagesResponse.json();
           setGlobalMessages(
-            data.map((m: {
-              id?: string;
-              _id?: string;
-              text?: string;
-              timestamp?: string;
-              sender?: string | { id?: string; _id?: string };
-              status?: string;
-            }, index: number) => ({
-              ...m,
-              id: m._id || m.id || `msg-${index}`,
+            data.map((item: any, index: number) => ({
+              chatId: item.chatId || item.chat?._id || item.chat?.id || "",
+              message: {
+                ...(item.message || item),
+                id: (
+                  item.message?._id ||
+                  item.message?.id ||
+                  item._id ||
+                  item.id ||
+                  `msg-${index}`
+                ).toString(),
+                senderId: (
+                  item.message?.sender?._id ||
+                  item.message?.sender?.id ||
+                  item.sender?._id ||
+                  item.sender?.id ||
+                  item.sender ||
+                  ""
+                ).toString(),
+                timestamp:
+                  item.message?.timestamp ||
+                  item.timestamp ||
+                  new Date().toISOString(),
+                status: item.message?.status || item.status || "sent",
+                type: item.message?.type || item.type || "text",
+                isMe:
+                  (item.message?.sender?._id ||
+                    item.message?.sender?.id ||
+                    item.sender?._id ||
+                    item.sender?.id ||
+                    item.sender) === user?.id,
+              },
             })),
           );
         }

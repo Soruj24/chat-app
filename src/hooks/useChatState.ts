@@ -60,7 +60,10 @@ export function useChatState(
           return [...prev, { ...message, isMe: false }];
         });
         dispatch(
-          addMessage({ chatId: currentChatId, message: { ...message, isMe: false } }),
+          addMessage({
+            chatId: currentChatId,
+            message: { ...message, isMe: false },
+          }),
         );
 
         // Handle unread count and scrolling
@@ -98,7 +101,8 @@ export function useChatState(
           } else {
             // In a group, try to find the user name from members
             const member = chat.members?.find(
-              (m) => (m.id || m._id || m).toString() === typingUserId,
+              (m: { id?: string; _id?: string }) =>
+                (m.id || m._id || m).toString() === typingUserId,
             );
             setTypingUser(member?.name || "Someone");
           }
@@ -186,7 +190,8 @@ export function useChatState(
           (chat.type === "private" || chat.type === "individual") &&
           Array.isArray(chat.members) &&
           chat.members.some(
-            (m) => (m.id || m._id || m).toString() === statusUserId,
+            (m: { id?: string; _id?: string }) =>
+              (m.id || m._id || m).toString() === statusUserId,
           ) &&
           statusUserId !== user.id
         ) {
@@ -315,14 +320,15 @@ export function useChatState(
 
           // Emit to socket server for real-time delivery
           const receiverId =
-            chat && (chat.type === "private" || chat.type === "individual") &&
+            chat &&
+            (chat.type === "private" || chat.type === "individual") &&
             Array.isArray(chat.members)
               ? chat.members.find(
-                  (m) => (m.id || m._id || m).toString() !== (user?.id || "me"),
+                  (m) => (m.id || m.id || m).toString() !== (user?.id || "me"),
                 )?.id ||
                 chat.members.find(
-                  (m) => (m.id || m._id || m).toString() !== (user?.id || "me"),
-                )?._id
+                  (m) => (m.id || m.id || m).toString() !== (user?.id || "me"),
+                )?.id
               : undefined;
 
           console.log("Emitting send_message:", {

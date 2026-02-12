@@ -24,12 +24,11 @@ export default function Sidebar() {
   const { activeChatId } = useSelector((state: RootState) => state.chat);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
-  if (pathname === '/auth') return null;
-
-  const activeId = pathname.startsWith('/chat/') ? pathname.split('/')[2] : null;
+  const activeId = pathname?.startsWith('/chat/') ? pathname.split('/')[2] : undefined;
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "unread" | "groups" | "archived">("all");
   const [isSearching, setIsSearching] = useState(false);
@@ -46,6 +45,8 @@ export default function Sidebar() {
     handleToggleMute,
     handleDeleteChat,
   } = useSidebar(searchQuery, filter);
+
+  if (pathname === '/auth') return null;
 
   const clearSearch = () => {
     setSearchQuery("");

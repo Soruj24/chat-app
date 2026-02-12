@@ -14,7 +14,7 @@ interface SidebarSearchResultsProps {
     messages: { chatId: string; message: Message }[];
     users: User[];
   };
-  activeId?: string;
+  activeId?: string | null;
 }
 
 export function SidebarSearchResults({ results, activeId }: SidebarSearchResultsProps) {
