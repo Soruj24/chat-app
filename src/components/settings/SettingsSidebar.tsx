@@ -14,7 +14,7 @@ interface MenuItem {
 
 interface SettingsSidebarProps {
   activeTab: string;
-  onTabChange: (tab: any) => void;
+  onTabChange: (tab: string) => void;
   onClose: () => void;
   menuItems: readonly MenuItem[];
 }

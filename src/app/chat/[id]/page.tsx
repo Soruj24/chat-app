@@ -21,6 +21,7 @@ import { EmojiPicker } from "@/components/chat-page/EmojiPicker";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import { useChatInteractions } from "@/hooks/useChatInteractions";
 import { useChatState } from "@/hooks/useChatState";
+import mongoose from "mongoose";
 
 export default function ChatPage() {
   const { id } = useParams();
@@ -85,14 +86,12 @@ export default function ChatPage() {
 
   // Sync pinned messages when localMessages or chat changes
   useEffect(() => {
-    if (chat?.pinnedMessages && localMessages.length > 0) {
-      const pinnedIds = new Set(
-        chat.pinnedMessages.map((id: any) => id.toString()),
-      );
+    if (chat?.pinnedMessageIds && localMessages.length > 0) {
+      const pinnedIds = new Set(chat.pinnedMessageIds);
       const pinned = localMessages.filter((m) => pinnedIds.has(m.id));
       setPinnedMessages(pinned);
     }
-  }, [chat?.pinnedMessages, localMessages, setPinnedMessages]);
+  }, [chat?.pinnedMessageIds, localMessages, setPinnedMessages]);
 
   const {
     inputValue,
@@ -160,11 +159,15 @@ export default function ChatPage() {
             // Emit to socket server for real-time delivery
             const receiverId =
               targetChat?.type === "private" &&
-              Array.isArray(targetChat.participants)
-                ? targetChat.participants.find(
-                    (p: any) =>
+              Array.isArray(targetChat.members)
+                ? targetChat.members.find(
+                    (p: { _id?: mongoose.Types.ObjectId | string; id?: string } | string) =>
+                      (typeof p === "string" ? p : (p._id?.toString() || p.id?.toString() || "")) !== user?.id,
+                  )?.id ||
+                  targetChat.members.find(
+                    (p: { _id?: mongoose.Types.ObjectId | string; id?: string }) =>
                       (p._id?.toString() || p.id?.toString() || p) !== user?.id,
-                  )
+                  )?.id
                 : undefined;
 
             socketService.emit("send_message", {
@@ -181,7 +184,7 @@ export default function ChatPage() {
     }
   };
 
-  const handleDelete = async (message: any) => {
+  const handleDelete = async (message: { id: string }) => {
     await handleDeleteMessage(message.id, () => {
       setLocalMessages((prev) => prev.filter((m) => m.id !== message.id));
       setContextMenu(null);
@@ -204,7 +207,7 @@ export default function ChatPage() {
     starredMessageIds.has(m.id),
   );
 
-  const handleReaction = async (message: any, emoji: string) => {
+  const handleReaction = async (message: { id: string; reactions?: { emoji: string; count: number; me?: boolean }[] }, emoji: string) => {
     if (!chat || !id || !token) return;
 
     // Optimistic Update

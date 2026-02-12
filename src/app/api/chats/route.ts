@@ -2,6 +2,7 @@ import dbConnect from "@/lib/db";
 import Chat from "@/models/Chat";
 import { getUserIdFromRequest } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 
 export async function GET(req: Request) {
   try {
@@ -24,15 +25,19 @@ export async function GET(req: Request) {
       return {
         ...chatObj,
         id: chatObj._id,
-        isPinned: chat.pinnedBy?.some((id: any) => id.toString() === userId),
-        isArchived: chat.archivedBy?.some((id: any) => id.toString() === userId),
-        isMuted: chat.mutedBy?.some((id: any) => id.toString() === userId),
+        isPinned: chat.pinnedBy?.some((id: mongoose.Types.ObjectId) => id.toString() === userId),
+        isArchived: chat.archivedBy?.some((id: mongoose.Types.ObjectId) => id.toString() === userId),
+        isMuted: chat.mutedBy?.some((id: mongoose.Types.ObjectId) => id.toString() === userId),
       };
     });
 
     return NextResponse.json(chatsWithStatus);
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json({ message: error.message }, { status: 500 });
+    } else {
+      return NextResponse.json({ message: "Unknown error" }, { status: 500 });
+    }
   }
 }
 
@@ -85,7 +90,11 @@ export async function POST(req: Request) {
       const populatedChat = await Chat.findById(chat._id).populate("participants", "name username avatar email");
       return NextResponse.json(populatedChat);
     }
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json({ message: error.message }, { status: 500 });
+    } else {
+      return NextResponse.json({ message: "Unknown error" }, { status: 500 });
+    }
   }
 }

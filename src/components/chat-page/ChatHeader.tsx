@@ -18,7 +18,7 @@ import { initiateCall } from "@/store/slices/callSlice";
 interface ChatHeaderProps {
   chat: {
     id: string;
-    type: "private" | "group";
+    type: "private" | "group" | "individual";
     otherParticipantId?: string;
     name: string;
     avatar: string;
@@ -42,7 +42,9 @@ export function ChatHeader({
     // If it's a private chat, we call the other participant.
     // If it's a group, we might need a different logic later, but for now we focus on private.
     const receiverId =
-      chat.type === "private" ? chat.otherParticipantId : chat.id;
+      chat.type === "private" || chat.type === "individual"
+        ? chat.otherParticipantId
+        : chat.id;
 
     if (!receiverId) {
       console.error("No receiver ID found for call");

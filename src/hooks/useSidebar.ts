@@ -14,9 +14,39 @@ export function useSidebar(searchQuery: string, filter: string) {
   // This hook now only focuses on filtering and managing the UI state of the sidebar
 
   // Local state for search results
-  const [globalUsers, setGlobalUsers] = useState<any[]>([]);
-  const [globalMessages, setGlobalMessages] = useState<any[]>([]);
-  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [globalUsers, setGlobalUsers] = useState<
+    {
+      id?: string;
+      _id?: string;
+      name?: string;
+      username?: string;
+      avatar?: string;
+      status?: string;
+    }[]
+  >([]);
+  const [globalMessages, setGlobalMessages] = useState<
+    {
+      id?: string;
+      _id?: string;
+      text?: string;
+      timestamp?: string;
+      status?: string;
+      sender?: {
+        id?: string;
+        _id?: string;
+      };
+    }[]
+  >([]);
+  const [allUsers, setAllUsers] = useState<
+    {
+      id?: string;
+      _id?: string;
+      name?: string;
+      username?: string;
+      avatar?: string;
+      status?: string;
+    }[]
+  >([]);
 
   // Fetch all users on mount
   useEffect(() => {
@@ -24,17 +54,28 @@ export function useSidebar(searchQuery: string, filter: string) {
       if (!token || !user) return;
       try {
         const response = await fetch("/api/users", {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         if (response.ok) {
           const data = await response.json();
-          setAllUsers(data.map((u: any) => ({
-            id: u._id,
-            name: u.name,
-            username: u.username,
-            avatar: u.avatar,
-            status: u.status || "offline"
-          })));
+          setAllUsers(
+            data.map(
+              (u: {
+                id?: string;
+                _id?: string;
+                name?: string;
+                username?: string;
+                avatar?: string;
+                status?: string;
+              }) => ({
+                id: u._id || u.id,
+                name: u.name,
+                username: u.username,
+                avatar: u.avatar,
+                status: u.status || "offline",
+              }),
+            ),
+          );
         }
       } catch (error) {
         console.error("Failed to fetch all users:", error);
@@ -56,38 +97,97 @@ export function useSidebar(searchQuery: string, filter: string) {
         if (response.ok) {
           const data = await response.json();
           // Map MongoDB data to frontend type if needed
-          const mappedChats = data.map((chat: any) => {
-            const otherParticipant = chat.participants.find((p: any) => (p._id?.toString() || p.id?.toString()) !== user.id);
-            return {
-              id: chat._id,
-              otherParticipantId: chat.type === 'private' ? otherParticipant?._id?.toString() || otherParticipant?.id?.toString() : undefined,
-              name: chat.type === 'private' 
-                ? otherParticipant?.name || "Chat"
-                : chat.name,
-              avatar: chat.type === 'private'
-                ? otherParticipant?.avatar
-                : chat.avatar,
-              type: chat.type,
-              members: chat.participants.map((p: any) => ({
-                id: p._id?.toString() || p.id?.toString(),
-                name: p.name,
-                avatar: p.avatar,
-                username: p.username,
-                status: p.status || "offline"
-              })),
-              lastMessage: chat.lastMessage ? {
-                text: chat.lastMessage.text,
-                time: new Date(chat.lastMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                status: chat.lastMessage.status,
-                senderId: typeof chat.lastMessage.sender === 'object' ? chat.lastMessage.sender._id : chat.lastMessage.sender
-              } : undefined,
-              unreadCount: chat.unreadCount || 0,
-              isPinned: chat.isPinned || false,
-              isArchived: chat.isArchived || false,
-              isMuted: chat.isMuted || false,
-              pinnedMessages: chat.pinnedMessages || [],
-            };
-          });
+          const mappedChats = data.map(
+            (chat: {
+              id?: string;
+              _id?: string;
+              type?: string;
+              name?: string;
+              avatar?: string;
+              participants?: {
+                id?: string;
+                _id?: string;
+                name?: string;
+                avatar?: string;
+                username?: string;
+                status?: string;
+              }[];
+              lastMessage?: {
+                text?: string;
+                timestamp?: string;
+                status?: string;
+                sender?: {
+                  id?: string;
+                  _id?: string;
+                };
+              };
+              unreadCount?: number;
+              isPinned?: boolean;
+              isArchived?: boolean;
+              isMuted?: boolean;
+              pinnedMessageIds?: string[];
+            }) => {
+              if (!chat.participants) return null;
+              const otherParticipant = chat.participants.find(
+                (p: { _id?: string; id?: string }) =>
+                  (p._id?.toString() || p.id?.toString()) !== user.id,
+              );
+              return {
+                id: chat._id,
+                otherParticipantId:
+                  chat.type === "private"
+                    ? otherParticipant?._id?.toString() ||
+                      otherParticipant?.id?.toString()
+                    : undefined,
+                name:
+                  chat.type === "private"
+                    ? otherParticipant?.name || "Chat"
+                    : chat.name,
+                avatar:
+                  chat.type === "private"
+                    ? otherParticipant?.avatar
+                    : chat.avatar,
+                type: chat.type,
+                members: chat.participants.map(
+                  (p: {
+                    id?: string;
+                    _id?: string;
+                    name?: string;
+                    avatar?: string;
+                    username?: string;
+                    status?: string;
+                  }) => ({
+                    id: p._id?.toString() || p.id?.toString(),
+                    name: p.name,
+                    avatar: p.avatar,
+                    username: p.username,
+                    status: p.status || "offline",
+                  }),
+                ),
+                lastMessage: chat.lastMessage
+                  ? {
+                      text: chat.lastMessage.text,
+                      time: new Date(
+                        chat.lastMessage.timestamp || "",
+                      ).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }),
+                      status: chat.lastMessage.status,
+                      senderId:
+                        typeof chat.lastMessage.sender === "object"
+                          ? chat.lastMessage.sender._id
+                          : chat.lastMessage.sender,
+                    }
+                  : undefined,
+                unreadCount: chat.unreadCount || 0,
+                isPinned: chat.isPinned || false,
+                isArchived: chat.isArchived || false,
+                isMuted: chat.isMuted || false,
+                pinnedMessageIds: chat.pinnedMessageIds || [],
+              };
+            },
+          );
           dispatch(setChats(mappedChats));
         }
       } catch (error) {
@@ -108,24 +208,39 @@ export function useSidebar(searchQuery: string, filter: string) {
       }
       try {
         // Search Users
-        const usersResponse = await fetch(`/api/users?q=${encodeURIComponent(searchQuery)}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const usersResponse = await fetch(
+          `/api/users?q=${encodeURIComponent(searchQuery)}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
         if (usersResponse.ok) {
           const data = await usersResponse.json();
-          setGlobalUsers(data.map((u: any) => ({
-            id: u._id,
-            name: u.name,
-            username: u.username,
-            avatar: u.avatar,
-            status: u.status || "offline"
-          })));
+          setGlobalUsers(
+            data.map((u: {
+              id?: string;
+              _id?: string;
+              name?: string;
+              username?: string;
+              avatar?: string;
+              status?: string;
+            }) => ({
+              id: u._id || u.id || "",
+              name: u.name || "",
+              username: u.username || "",
+              avatar: u.avatar || "",
+              status: u.status || "offline",
+            })),
+          );
         }
 
         // Search Messages
-        const messagesResponse = await fetch(`/api/messages/search?q=${encodeURIComponent(searchQuery)}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const messagesResponse = await fetch(
+          `/api/messages/search?q=${encodeURIComponent(searchQuery)}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
         if (messagesResponse.ok) {
           const data = await messagesResponse.json();
           setGlobalMessages(data);
@@ -143,11 +258,13 @@ export function useSidebar(searchQuery: string, filter: string) {
     try {
       const response = await fetch(`/api/chats/${id}/pin`, {
         method: "PATCH",
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
         const data = await response.json();
-        dispatch(updateChat({ chatId: id, updates: { isPinned: data.isPinned } }));
+        dispatch(
+          updateChat({ chatId: id, updates: { isPinned: data.isPinned } }),
+        );
       }
     } catch (error) {
       console.error("Failed to toggle pin:", error);
@@ -158,11 +275,13 @@ export function useSidebar(searchQuery: string, filter: string) {
     try {
       const response = await fetch(`/api/chats/${id}/archive`, {
         method: "PATCH",
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
         const data = await response.json();
-        dispatch(updateChat({ chatId: id, updates: { isArchived: data.isArchived } }));
+        dispatch(
+          updateChat({ chatId: id, updates: { isArchived: data.isArchived } }),
+        );
       }
     } catch (error) {
       console.error("Failed to toggle archive:", error);
@@ -173,11 +292,13 @@ export function useSidebar(searchQuery: string, filter: string) {
     try {
       const response = await fetch(`/api/chats/${id}/mute`, {
         method: "PATCH",
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
         const data = await response.json();
-        dispatch(updateChat({ chatId: id, updates: { isMuted: data.isMuted } }));
+        dispatch(
+          updateChat({ chatId: id, updates: { isMuted: data.isMuted } }),
+        );
       }
     } catch (error) {
       console.error("Failed to toggle mute:", error);
@@ -189,7 +310,7 @@ export function useSidebar(searchQuery: string, filter: string) {
     try {
       const response = await fetch(`/api/chats/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
         dispatch(removeChat(id));
@@ -204,11 +325,12 @@ export function useSidebar(searchQuery: string, filter: string) {
     if (!searchQuery.trim()) return { chats: [], messages: [], users: [] };
 
     const query = searchQuery.toLowerCase();
-    
+
     // 1. Search Chats
-    const matchedChats = chats.filter(c => 
-      c.name?.toLowerCase().includes(query) || 
-      c.lastMessage?.text?.toLowerCase().includes(query)
+    const matchedChats = chats.filter(
+      (c) =>
+        c.name?.toLowerCase().includes(query) ||
+        c.lastMessage?.text?.toLowerCase().includes(query),
     );
 
     // 2. Search Messages globally
@@ -218,54 +340,59 @@ export function useSidebar(searchQuery: string, filter: string) {
     // Map current chat participants to their IDs
     const existingChatUserIds = new Set(
       chats
-        .filter(c => c.type === 'private' && c.otherParticipantId)
-        .map(c => c.otherParticipantId)
+        .filter((c) => c.type === "private" && c.otherParticipantId)
+        .map((c) => c.otherParticipantId),
     );
-    
-    const matchedUsers = globalUsers.filter(user => !existingChatUserIds.has(user.id));
+
+    const matchedUsers = globalUsers.filter(
+      (user) => !existingChatUserIds.has(user.id),
+    );
 
     return {
       chats: matchedChats,
       messages: matchedMessages.slice(0, 10),
-      users: matchedUsers.slice(0, 10)
+      users: matchedUsers.slice(0, 10),
     };
   }, [searchQuery, chats, globalUsers, globalMessages]);
 
-  const filteredChats = chats.filter(chat => {
+  const filteredChats = chats.filter((chat) => {
     // If searching, only filter by search query, ignore category filters for results
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       const matchesName = chat.name?.toLowerCase().includes(query);
-      const matchesMessage = chat.lastMessage?.text?.toLowerCase().includes(query);
+      const matchesMessage = chat.lastMessage?.text
+        ?.toLowerCase()
+        .includes(query);
       return matchesName || matchesMessage;
     }
-    
+
     // Category Filter Logic (only when not searching)
-    if (filter === "unread") return (chat.unreadCount || 0) > 0 && !chat.isArchived;
+    if (filter === "unread")
+      return (chat.unreadCount || 0) > 0 && !chat.isArchived;
     if (filter === "groups") return chat.type === "group" && !chat.isArchived;
     if (filter === "archived") return chat.isArchived;
-    
+
     // Default ("all"): don't show archived chats
     return !chat.isArchived;
   });
 
-  const pinnedChats = useMemo(() => 
-    filteredChats.filter(c => c.isPinned && filter !== "archived"),
-    [filteredChats, filter]
+  const pinnedChats = useMemo(
+    () => filteredChats.filter((c) => c.isPinned && filter !== "archived"),
+    [filteredChats, filter],
   );
-  
-  const otherChats = useMemo(() => 
-    filteredChats.filter(c => !c.isPinned || filter === "archived"),
-    [filteredChats, filter]
+
+  const otherChats = useMemo(
+    () => filteredChats.filter((c) => !c.isPinned || filter === "archived"),
+    [filteredChats, filter],
   );
 
   const displayUsers = useMemo(() => {
     const existingChatUserIds = new Set(
       chats
-        .filter(c => c.type === 'private' && c.otherParticipantId)
-        .map(c => c.otherParticipantId)
+        .filter((c) => c.type === "private" && c.otherParticipantId)
+        .map((c) => c.otherParticipantId),
     );
-    return allUsers.filter(user => !existingChatUserIds.has(user.id));
+    return allUsers.filter((user) => !existingChatUserIds.has(user.id));
   }, [allUsers, chats]);
 
   return {

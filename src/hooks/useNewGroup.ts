@@ -6,6 +6,7 @@ import { RootState } from "@/store/store";
 import { addChat, setActiveChat } from "@/store/slices/chatSlice";
 import { useRouter } from "next/navigation";
 import { socketService } from "@/lib/socket/socket-client";
+import { User, UserStatus } from "@/lib/types";
 
 export function useNewGroup(onClose: () => void) {
   const [step, setStep] = useState<1 | 2>(1);
@@ -13,7 +14,7 @@ export function useNewGroup(onClose: () => void) {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [groupName, setGroupName] = useState("");
   const [description, setDescription] = useState("");
-  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
   const { token } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
   const router = useRouter();
@@ -23,14 +24,26 @@ export function useNewGroup(onClose: () => void) {
       if (!token) return;
       try {
         const response = await fetch("/api/users", {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         if (response.ok) {
           const data = await response.json();
-          const mappedUsers = data.map((u: any) => ({
-            ...u,
-            id: u._id || u.id,
-          }));
+          const mappedUsers: User[] = data.map(
+            (u: {
+              _id?: string;
+              id?: string;
+              name: string;
+              avatar: string;
+              username?: string;
+              status?: string;
+            }) => ({
+              id: (u._id || u.id || "").toString(),
+              name: u.name,
+              avatar: u.avatar,
+              username: u.username || "",
+              status: (u.status as UserStatus) || "offline",
+            }),
+          );
           setAllUsers(mappedUsers);
         }
       } catch (error) {
@@ -41,9 +54,10 @@ export function useNewGroup(onClose: () => void) {
   }, [token]);
 
   const filteredUsers = useMemo(() => {
-    return allUsers.filter(u => 
-      u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      u.username?.toLowerCase().includes(searchQuery.toLowerCase())
+    return allUsers.filter(
+      (u) =>
+        u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        u.username?.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [searchQuery, allUsers]);
 
@@ -69,14 +83,14 @@ export function useNewGroup(onClose: () => void) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           type: "group",
           name: groupName,
           description: description,
-          participantIds: Array.from(selectedUsers)
-        })
+          participantIds: Array.from(selectedUsers),
+        }),
       });
 
       if (response.ok) {
@@ -88,13 +102,22 @@ export function useNewGroup(onClose: () => void) {
           type: chatData.type,
           unreadCount: 0,
           description: chatData.description,
-          members: chatData.participants.map((p: any) => ({
-            id: p._id || p.id,
-            name: p.name,
-            avatar: p.avatar,
-            username: p.username,
-            status: p.status || "offline"
-          })),
+          members: chatData.participants.map(
+            (p: {
+              _id?: string;
+              id?: string;
+              name: string;
+              avatar: string;
+              username?: string;
+              status?: string;
+            }) => ({
+              id: (p._id || p.id || "").toString(),
+              name: p.name,
+              avatar: p.avatar,
+              username: p.username || "",
+              status: (p.status as UserStatus) || "offline",
+            }),
+          ),
         };
 
         dispatch(addChat(mappedChat));
@@ -103,7 +126,9 @@ export function useNewGroup(onClose: () => void) {
         // Emit socket event for all participants
         socketService.emit("new_chat", {
           chat: mappedChat,
-          participants: chatData.participants.map((p: any) => p._id || p.id)
+          participants: chatData.participants.map(
+            (p: { _id?: string; id?: string }) => p._id || p.id,
+          ),
         });
 
         onClose();

@@ -10,15 +10,60 @@ export function useStories() {
   const [stories, setStories] = useState<Story[]>([]);
   const { token, user } = useSelector((state: RootState) => state.auth);
 
+  function getDefaultMockStories(): Story[] {
+    return [
+      {
+        id: "s1",
+        userId: "u1",
+        userName: "Ahmed Khan",
+        userAvatar: "https://i.pravatar.cc/150?u=ahmed",
+        mediaUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400&h=700&fit=crop",
+        type: "image",
+        timestamp: new Date().toISOString(),
+        isRead: false
+      },
+      {
+        id: "s2",
+        userId: "u2",
+        userName: "Sumaiya Akter",
+        userAvatar: "https://i.pravatar.cc/150?u=sumaiya",
+        mediaUrl: "https://images.unsplash.com/photo-1511765224389-37f0e77ee0eb?w=400&h=700&fit=crop",
+        type: "image",
+        timestamp: new Date().toISOString(),
+        isRead: false
+      },
+      {
+        id: "s3",
+        userId: "u3",
+        userName: "Rakib Hasan",
+        userAvatar: "https://i.pravatar.cc/150?u=rakib",
+        mediaUrl: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400&h=700&fit=crop",
+        type: "image",
+        timestamp: new Date().toISOString(),
+        isRead: true
+      },
+      {
+        id: "s4",
+        userId: "u4",
+        userName: "Nusrat Jahan",
+        userAvatar: "https://i.pravatar.cc/150?u=nusrat",
+        mediaUrl: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=700&fit=crop",
+        type: "image",
+        timestamp: new Date().toISOString(),
+        isRead: false
+      }
+    ];
+  }
+
   useEffect(() => {
     const fetchStories = async () => {
       if (!token) return;
 
       try {
         const response = await fetch("/api/stories", {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           if (data && data.length > 0) {
@@ -39,9 +84,9 @@ export function useStories() {
 
     // Listen for new stories in real-time
     const handleReceiveStory = (newStory: Story) => {
-      setStories(prev => {
+      setStories((prev) => {
         // Check if story already exists
-        if (prev.some(s => s.id === newStory.id)) return prev;
+        if (prev.some((s) => s.id === newStory.id)) return prev;
         return [newStory, ...prev];
       });
     };
@@ -53,7 +98,10 @@ export function useStories() {
     };
   }, [token]);
 
-  const addStory = async (mediaUrl: string, type: "image" | "video" = "image") => {
+  const addStory = async (
+    mediaUrl: string,
+    type: "image" | "video" = "image",
+  ) => {
     if (!token || !user) return;
 
     try {
@@ -61,20 +109,20 @@ export function useStories() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           mediaUrl,
           type,
           userName: user.name,
-          userAvatar: user.avatar
-        })
+          userAvatar: `https://i.pravatar.cc/150?u=${user.id}`,
+        }),
       });
 
       if (response.ok) {
         const newStory = await response.json();
-        setStories(prev => [newStory, ...prev]);
-        
+        setStories((prev) => [newStory, ...prev]);
+
         // Emit to socket server for real-time delivery
         socketService.emit("new_story", newStory);
         return newStory;
@@ -83,41 +131,6 @@ export function useStories() {
       console.error("Failed to add story:", error);
     }
   };
-
-  function getDefaultMockStories(): Story[] {
-    return [
-      {
-        id: "s1",
-        userId: "u1",
-        userName: "Sarah Wilson",
-        userAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
-        mediaUrl: "https://picsum.photos/seed/story1/400/700",
-        type: "image",
-        timestamp: new Date().toISOString(),
-        isRead: false
-      },
-      {
-        id: "s2",
-        userId: "u2",
-        userName: "Mike Chen",
-        userAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mike",
-        mediaUrl: "https://picsum.photos/seed/story2/400/700",
-        type: "image",
-        timestamp: new Date().toISOString(),
-        isRead: false
-      },
-      {
-        id: "s3",
-        userId: "u3",
-        userName: "Alex Rivera",
-        userAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
-        mediaUrl: "https://picsum.photos/seed/story3/400/700",
-        type: "image",
-        timestamp: new Date().toISOString(),
-        isRead: true
-      }
-    ];
-  }
 
   const openStory = (story: Story) => {
     setSelectedStory(story);

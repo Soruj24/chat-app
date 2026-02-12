@@ -10,7 +10,11 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json({ user });
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json({ message: error.message }, { status: 500 });
+    } else {
+      return NextResponse.json({ message: "Unknown error" }, { status: 500 });
+    }
   }
 }

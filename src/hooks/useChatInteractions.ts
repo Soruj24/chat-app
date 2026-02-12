@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
 import { updateChat } from "@/store/slices/chatSlice";
 import { updateUser } from "@/store/slices/authSlice";
 import { socketService } from "@/lib/socket/socket-client";
+import { Message } from "@/lib/types";
 
 export function useChatInteractions(chatId?: string) {
   const { token, user } = useSelector((state: RootState) => state.auth);
@@ -11,35 +12,29 @@ export function useChatInteractions(chatId?: string) {
   const dispatch = useDispatch();
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [replyingTo, setReplyingTo] = useState<any>(null);
-  const [forwardingMessage, setForwardingMessage] = useState<any>(null);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [forwardingMessage, setForwardingMessage] = useState<Message | null>(
+    null,
+  );
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
-    message: { id: string; [key: string]: unknown };
+    message: Message;
   } | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
+  const [pinnedMessages, setPinnedMessages] = useState<Message[]>([]);
   const [currentPinnedIndex, setCurrentPinnedIndex] = useState(0);
-  const [starredMessageIds, setStarredMessageIds] = useState<Set<string>>(
-    new Set(),
-  );
 
-  // Sync starred messages from Redux user state
-  useEffect(() => {
-    if (user?.starredMessages) {
-      setStarredMessageIds(
-        new Set(user.starredMessages.map((m: string) => m.toString())),
-      );
-    }
+  // Derive starred message IDs from user state instead of using useEffect
+  const starredMessageIds = useMemo(() => {
+    return new Set(
+      (user?.starredMessages || []).map((m: string) => m.toString()),
+    );
   }, [user?.starredMessages]);
 
-  const handlePinMessage = async (message: {
-    id: string;
-    [key: string]: unknown;
-  }) => {
+  const handlePinMessage = async (message: Message) => {
     if (!token || !chatId) return;
     try {
       const response = await fetch(`/api/messages/${message.id}/pin`, {
@@ -76,11 +71,7 @@ export function useChatInteractions(chatId?: string) {
     }
   };
 
-  const handleStarMessage = async (message: {
-    id: string;
-    [key: string]: unknown;
-  }) => {
-    if (!token) return;
+  const handleStarMessage = async (message: Message) => {
     try {
       const response = await fetch(`/api/messages/${message.id}/star`, {
         method: "PATCH",

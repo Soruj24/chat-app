@@ -40,7 +40,7 @@ export interface Message {
   text?: string;
   timestamp: string;
   date: string;
-  status: "sent" | "delivered" | "read";
+  status: "sent" | "delivered" | "read" | "sending" | "error";
   isMe: boolean;
   type: MessageType;
   mediaUrl?: string;
@@ -49,7 +49,7 @@ export interface Message {
   duration?: string;
   replyTo?: {
     id: string;
-    text: string;
+    text?: string;
     senderName: string;
   };
   isForwarded?: boolean;

@@ -1,7 +1,12 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface AuthState {
-  user: any | null;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    starredMessages?: string[];
+  } | null;
   token: string | null;
   isAuthenticated: boolean;
   loading: boolean;
@@ -10,27 +15,38 @@ interface AuthState {
 
 const initialState: AuthState = {
   user: null,
-  token: typeof window !== 'undefined' ? localStorage.getItem('token') : null,
+  token: typeof window !== "undefined" ? localStorage.getItem("token") : null,
   isAuthenticated: false,
   loading: false,
   error: null,
 };
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     loginStart: (state) => {
       state.loading = true;
       state.error = null;
     },
-    loginSuccess: (state, action: PayloadAction<{ user: any, token: string }>) => {
+    loginSuccess: (
+      state,
+      action: PayloadAction<{
+        user: {
+          id: string;
+          name: string;
+          email: string;
+          starredMessages?: string[];
+        };
+        token: string;
+      }>,
+    ) => {
       state.loading = false;
       state.isAuthenticated = true;
       state.user = action.payload.user;
       state.token = action.payload.token;
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('token', action.payload.token);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("token", action.payload.token);
       }
     },
     loginFailure: (state, action: PayloadAction<string>) => {
@@ -41,21 +57,28 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
       }
     },
-    setUser: (state, action: PayloadAction<any>) => {
+    setUser: (state, action: PayloadAction<AuthState["user"]>) => {
       state.user = action.payload;
       state.isAuthenticated = !!action.payload;
     },
-    updateUser: (state, action: PayloadAction<Partial<any>>) => {
+    updateUser: (state, action: PayloadAction<Partial<AuthState["user"]>>) => {
       if (state.user) {
         state.user = { ...state.user, ...action.payload };
       }
-    }
+    },
   },
 });
 
-export const { loginStart, loginSuccess, loginFailure, logout, setUser, updateUser } = authSlice.actions;
+export const {
+  loginStart,
+  loginSuccess,
+  loginFailure,
+  logout,
+  setUser,
+  updateUser,
+} = authSlice.actions;
 export default authSlice.reducer;

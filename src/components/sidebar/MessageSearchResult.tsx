@@ -2,14 +2,11 @@
 
 import { MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Message } from "@/lib/types";
 
 interface MessageSearchResultProps {
   chatId: string;
-  message: {
-    id: string;
-    text: string;
-    timestamp: string;
-  };
+  message: Message;
   chatName?: string;
 }
 

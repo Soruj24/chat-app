@@ -4,21 +4,50 @@ import { useState, useRef, useEffect } from "react";
 import { Message } from "@/lib/types";
 import { socketService } from "@/lib/socket/socket-client";
 import { useDispatch, useSelector } from "react-redux";
-import { addMessage, markAsRead, setActiveChat, updateChat } from "@/store/slices/chatSlice";
+import {
+  addMessage,
+  markAsRead,
+  setActiveChat,
+  updateChat,
+} from "@/store/slices/chatSlice";
 import { RootState } from "@/store/store";
 
-export function useChatState(chat: any, setLocalMessages: (fn: (prev: any[]) => any[]) => void, setReplyingTo: (msg: any) => void, replyingTo: any) {
+export function useChatState(
+  chat: {
+    id: string;
+    type: "private" | "group" | "individual";
+    name?: string;
+    avatar?: string;
+    wallpaper?: string;
+    members?: {
+      id?: string;
+      _id?: string;
+      name?: string;
+      avatar?: string;
+    }[];
+    pinnedMessageIds?: string[];
+  },
+  setLocalMessages: (fn: (prev: Message[]) => Message[]) => void,
+  setReplyingTo: (msg: Message | null) => void,
+  replyingTo: Message | null,
+) {
   const [inputValue, setInputValue] = useState("");
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOnline, setIsOnline] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
   const [typingUser, setTypingUser] = useState("");
-  const [chatWallpaper, setChatWallpaper] = useState<string | undefined>(chat?.wallpaper);
+  const [chatWallpaper, setChatWallpaper] = useState<string | undefined>(
+    chat?.wallpaper,
+  );
   const dispatch = useDispatch();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const { token, user } = useSelector((state: RootState) => state.auth);
 
@@ -28,9 +57,9 @@ export function useChatState(chat: any, setLocalMessages: (fn: (prev: any[]) => 
     // Mark as read and set as active chat when entering
     dispatch(markAsRead(chat.id));
     dispatch(setActiveChat(chat.id));
-    
+
     socketService.connect();
-    
+
     // Join user room and specific chat room
     socketService.emit("join", user.id);
     socketService.emit("join_chat", chat.id);
@@ -39,37 +68,51 @@ export function useChatState(chat: any, setLocalMessages: (fn: (prev: any[]) => 
       // If the message belongs to this chat and it's not from me
       if (message.senderId !== user.id) {
         setLocalMessages((prev) => {
-          if (prev.some(m => m.id === message.id)) return prev;
+          if (prev.some((m) => m.id === message.id)) return prev;
           return [...prev, { ...message, isMe: false }];
         });
-        dispatch(addMessage({ chatId: chat.id, message: { ...message, isMe: false } }));
-        
+        dispatch(
+          addMessage({ chatId: chat.id, message: { ...message, isMe: false } }),
+        );
+
         // Handle unread count and scrolling
         if (scrollContainerRef.current) {
-          const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+          const { scrollTop, scrollHeight, clientHeight } =
+            scrollContainerRef.current;
           const isAtBottom = scrollHeight - scrollTop - clientHeight < 150; // threshold
-          
+
           if (isAtBottom) {
             setTimeout(scrollToBottom, 100);
           } else {
-            setUnreadCount(prev => prev + 1);
+            setUnreadCount((prev) => prev + 1);
           }
         }
       }
     };
 
-    const handleTyping = ({ chatId: typingChatId, userId: typingUserId, isTyping: typingStatus }: { chatId: string, userId: string, isTyping: boolean }) => {
+    const handleTyping = ({
+      chatId: typingChatId,
+      userId: typingUserId,
+      isTyping: typingStatus,
+    }: {
+      chatId: string;
+      userId: string;
+      isTyping: boolean;
+    }) => {
       if (typingChatId === chat.id && typingUserId !== user.id) {
         setIsTyping(typingStatus);
         setIsOnline(true);
-        
+
         if (typingStatus) {
           // If it's a private chat, we know the name
-          if (chat.type === 'private') {
-            setTypingUser(chat.name);
+          if (chat.type === "private") {
+            setTypingUser(chat.name || "Someone");
           } else {
             // In a group, try to find the user name from members
-            const member = chat.members?.find((m: any) => m.id === typingUserId || m._id === typingUserId);
+            const member = chat.members?.find(
+              (m: { id?: string; _id?: string; name?: string }) =>
+                (m.id || m._id || m).toString() === typingUserId,
+            );
             setTypingUser(member?.name || "Someone");
           }
         }
@@ -79,43 +122,67 @@ export function useChatState(chat: any, setLocalMessages: (fn: (prev: any[]) => 
     socketService.on("receive_message", handleReceiveMessage);
     socketService.on("user_typing", handleTyping);
 
-    const handleMessageReaction = ({ messageId, reactions, userId: reactionUserId }: { messageId: string, reactions: any[], userId: string }) => {
+    const handleMessageReaction = ({
+      messageId,
+      reactions,
+      userId: reactionUserId,
+    }: {
+      messageId: string;
+      reactions: { emoji: string; userId?: string }[];
+      userId: string;
+    }) => {
       setLocalMessages((prev) =>
         prev.map((m) => {
           if (m.id === messageId) {
-            const formattedReactions = reactions.reduce((acc: any[], curr: any) => {
-              const existing = acc.find(r => r.emoji === curr.emoji);
-              if (existing) {
-                existing.count++;
-                if (curr.userId?.toString() === user?.id) existing.me = true;
-              } else {
-                acc.push({
-                  emoji: curr.emoji,
-                  count: 1,
-                  me: curr.userId?.toString() === user?.id
-                });
-              }
-              return acc;
-            }, []);
+            const formattedReactions = reactions.reduce(
+              (
+                acc: { emoji: string; count: number; me: boolean }[],
+                curr: { emoji: string; userId?: string },
+              ) => {
+                const existing = acc.find((r) => r.emoji === curr.emoji);
+                if (existing) {
+                  existing.count++;
+                  if (curr.userId?.toString() === user?.id) existing.me = true;
+                } else {
+                  acc.push({
+                    emoji: curr.emoji,
+                    count: 1,
+                    me: curr.userId?.toString() === user?.id,
+                  });
+                }
+                return acc;
+              },
+              [],
+            );
             return { ...m, reactions: formattedReactions };
           }
           return m;
-        })
+        }),
       );
     };
 
     socketService.on("message_reaction", handleMessageReaction);
-    
-    const handleMessagePin = ({ messageId, isPinned }: { messageId: string, isPinned: boolean }) => {
+
+    const handleMessagePin = ({
+      messageId,
+      isPinned,
+    }: {
+      messageId: string;
+      isPinned: boolean;
+    }) => {
       // Update chat in Redux
-      const newPinnedMessages = isPinned 
-        ? [...(chat.pinnedMessages || []), messageId]
-        : (chat.pinnedMessages || []).filter((id: any) => id.toString() !== messageId);
-      
-      dispatch(updateChat({ 
-        chatId: chat.id, 
-        updates: { pinnedMessages: newPinnedMessages } 
-      }));
+      const newPinnedMessages = isPinned
+        ? [...(chat.pinnedMessageIds || []), messageId]
+        : (chat.pinnedMessageIds || []).filter(
+            (id: string) => id.toString() !== messageId,
+          );
+
+      dispatch(
+        updateChat({
+          chatId: chat.id,
+          updates: { pinnedMessageIds: newPinnedMessages },
+        }),
+      );
     };
 
     const handleMessageDelete = ({ messageId }: { messageId: string }) => {
@@ -125,11 +192,21 @@ export function useChatState(chat: any, setLocalMessages: (fn: (prev: any[]) => 
     socketService.on("message_pin", handleMessagePin);
     socketService.on("message_delete", handleMessageDelete);
 
-    socketService.on("user_status_update", ({ userId: statusUserId, status }) => {
-      if (chat.type === 'private' && Array.isArray(chat.participants) && chat.participants.includes(statusUserId) && statusUserId !== user.id) {
-        setIsOnline(status === 'online');
-      }
-    });
+    socketService.on(
+      "user_status_update",
+      ({ userId: statusUserId, status }) => {
+        if (
+          (chat.type === "private" || chat.type === "individual") &&
+          Array.isArray(chat.members) &&
+          chat.members.some(
+            (m) => (m.id || m._id || m).toString() === statusUserId,
+          ) &&
+          statusUserId !== user.id
+        ) {
+          setIsOnline(status === "online");
+        }
+      },
+    );
 
     return () => {
       socketService.emit("leave_chat", chat.id);
@@ -147,24 +224,36 @@ export function useChatState(chat: any, setLocalMessages: (fn: (prev: any[]) => 
     if (!chat?.id || !user?.id) return;
 
     if (inputValue.trim()) {
-      socketService.emit("typing", { chatId: chat.id, userId: user.id, isTyping: true });
+      socketService.emit("typing", {
+        chatId: chat.id,
+        userId: user.id,
+        isTyping: true,
+      });
     } else {
-      socketService.emit("typing", { chatId: chat.id, userId: user.id, isTyping: false });
+      socketService.emit("typing", {
+        chatId: chat.id,
+        userId: user.id,
+        isTyping: false,
+      });
     }
 
     const timer = setTimeout(() => {
-      socketService.emit("typing", { chatId: chat.id, userId: user.id, isTyping: false });
+      socketService.emit("typing", {
+        chatId: chat.id,
+        userId: user.id,
+        isTyping: false,
+      });
     }, 3000);
 
     return () => {
       clearTimeout(timer);
-      socketService.emit("typing", { chatId: chat.id, userId: user.id, isTyping: false });
+      socketService.emit("typing", {
+        chatId: chat.id,
+        userId: user.id,
+        isTyping: false,
+      });
     };
   }, [inputValue, chat?.id, user?.id]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
 
   const handleSendMessage = async () => {
     const chatId = chat?.id;
@@ -195,7 +284,11 @@ export function useChatState(chat: any, setLocalMessages: (fn: (prev: any[]) => 
       // Optimistic update
       setLocalMessages((prev) => [...prev, newMessage]);
       setInputValue("");
-      socketService.emit("typing", { chatId: chat.id, userId: user.id, isTyping: false });
+      socketService.emit("typing", {
+        chatId: chat.id,
+        userId: user?.id || "me",
+        isTyping: false,
+      });
       setReplyingTo(null);
       setTimeout(scrollToBottom, 100);
 
@@ -216,12 +309,14 @@ export function useChatState(chat: any, setLocalMessages: (fn: (prev: any[]) => 
 
         if (response.ok) {
           const savedMsg = await response.json();
-          
+
           // Update local state with real ID and status
           setLocalMessages((prev) =>
             prev.map((msg) =>
-              msg.id === tempId ? { ...msg, id: savedMsg._id, status: "sent" } : msg
-            )
+              msg.id === tempId
+                ? { ...msg, id: savedMsg._id, status: "sent" }
+                : msg,
+            ),
           );
 
           const finalMessage: Message = {
@@ -231,40 +326,56 @@ export function useChatState(chat: any, setLocalMessages: (fn: (prev: any[]) => 
           };
 
           // Emit to socket server for real-time delivery
-          const receiverId = (chat.type === 'private' && Array.isArray(chat.participants))
-            ? chat.participants.find((pId: string) => pId !== user.id)
-            : undefined;
+          const receiverId =
+            (chat.type === "private" || chat.type === "individual") &&
+            Array.isArray(chat.members)
+              ? chat.members.find(
+                  (m) => (m.id || m._id || m).toString() !== (user?.id || "me"),
+                )?.id ||
+                chat.members.find(
+                  (m) => (m.id || m._id || m).toString() !== (user?.id || "me"),
+                )?._id
+              : undefined;
 
-          console.log("Emitting send_message:", { chatId, receiverId, messageId: finalMessage.id });
+          console.log("Emitting send_message:", {
+            chatId,
+            receiverId,
+            messageId: finalMessage.id,
+          });
 
           socketService.emit("send_message", {
             chatId,
             message: finalMessage,
             receiverId,
           });
-          
+
           dispatch(addMessage({ chatId, message: finalMessage }));
         } else {
           setLocalMessages((prev) =>
             prev.map((msg) =>
-              msg.id === tempId ? { ...msg, status: "error" } : msg
-            )
+              msg.id === tempId ? { ...msg, status: "error" } : msg,
+            ),
           );
         }
       } catch (error) {
         console.error("Failed to send message:", error);
         setLocalMessages((prev) =>
           prev.map((msg) =>
-            msg.id === tempId ? { ...msg, status: "error" } : msg
-          )
+            msg.id === tempId ? { ...msg, status: "error" } : msg,
+          ),
         );
       }
     }
   };
 
-  const handleScroll = (isPaginationLoading: boolean, isLoading: boolean, loadMoreMessages: () => void) => {
+  const handleScroll = (
+    isPaginationLoading: boolean,
+    isLoading: boolean,
+    loadMoreMessages: () => void,
+  ) => {
     if (!scrollContainerRef.current) return;
-    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+    const { scrollTop, scrollHeight, clientHeight } =
+      scrollContainerRef.current;
     const isAtBottom = scrollHeight - scrollTop - clientHeight < 100;
     setShowScrollToBottom(!isAtBottom);
     if (isAtBottom) setUnreadCount(0);

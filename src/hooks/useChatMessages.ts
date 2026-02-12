@@ -1,9 +1,32 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
+import { Message } from "@/lib/types";
+
+interface RawMessage {
+  _id: string;
+  sender: string | { _id: string; name: string };
+  text?: string;
+  timestamp: string;
+  status: Message["status"];
+  type: Message["type"];
+  mediaUrl?: string;
+  isForwarded?: boolean;
+  reactions?: Array<{
+    userId: string;
+    emoji: string;
+  }>;
+  replyTo?: {
+    _id: string;
+    text?: string;
+    sender?: {
+      name: string;
+    };
+  };
+}
 
 export function useChatMessages(chatId: string) {
-  const [localMessages, setLocalMessages] = useState<any[]>([]);
+  const [localMessages, setLocalMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isPaginationLoading, setIsPaginationLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -27,7 +50,7 @@ export function useChatMessages(chatId: string) {
           console.log("Raw messages from API:", data);
           
           // Format messages for UI
-          const formattedMessages = data.map((msg: any) => {
+          const formattedMessages = data.map((msg: RawMessage) => {
             const senderId = typeof msg.sender === 'object' ? msg.sender._id?.toString() : msg.sender?.toString();
             const senderName = typeof msg.sender === 'object' ? msg.sender.name : undefined;
             return {
@@ -42,7 +65,7 @@ export function useChatMessages(chatId: string) {
               type: msg.type,
               mediaUrl: msg.mediaUrl,
               isForwarded: msg.isForwarded,
-              reactions: msg.reactions?.reduce((acc: any[], curr: any) => {
+              reactions: msg.reactions?.reduce((acc: NonNullable<Message["reactions"]>, curr) => {
                 const existing = acc.find(r => r.emoji === curr.emoji);
                 if (existing) {
                   existing.count++;
@@ -95,7 +118,7 @@ export function useChatMessages(chatId: string) {
   }, [localMessages, searchQuery]);
 
   const groupedMessages = useMemo(() => {
-    return localMessages.reduce((groups: any, msg) => {
+    return localMessages.reduce((groups: Record<string, Message[]>, msg) => {
       const date = msg.date;
       if (!groups[date]) {
         groups[date] = [];

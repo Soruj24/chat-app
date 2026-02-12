@@ -17,7 +17,9 @@ interface UserSearchResultProps {
 export function UserSearchResult({ user }: UserSearchResultProps) {
   const dispatch = useDispatch();
   const router = useRouter();
-  const { token, user: currentUser } = useSelector((state: RootState) => state.auth);
+  const { token, user: currentUser } = useSelector(
+    (state: RootState) => state.auth,
+  );
   const [loading, setLoading] = useState(false);
 
   const handleStartChat = async () => {
@@ -39,18 +41,20 @@ export function UserSearchResult({ user }: UserSearchResultProps) {
 
       if (response.ok) {
         const chatData = await response.json();
-        
+
         // Find other participant to get the correct name/avatar
-        const otherParticipant = chatData.participants.find((p: UserType) => p._id !== currentUser?.id);
-        
+        const otherParticipant = chatData.participants.find(
+          (p: UserType) => p.id !== currentUser?.id,
+        );
+
         const mappedChat = {
-          id: chatData._id,
+          id: chatData.id,
           name: otherParticipant?.name || user.name,
           avatar: otherParticipant?.avatar || user.avatar,
           type: chatData.type,
           lastMessage: chatData.lastMessage,
           unreadCount: 0,
-          otherParticipantId: otherParticipant?._id
+          otherParticipantId: otherParticipant?._id,
         };
 
         // Add to local chats if not already there and set active
