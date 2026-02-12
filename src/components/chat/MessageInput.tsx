@@ -144,15 +144,15 @@ export function MessageInput({
                 />
               ) : (
                 <TextInput 
-                  textareaRef={textareaRef}
-                  value={value}
-                  onChange={handleTextareaChange}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSend();
-                    }
-                  }}
+                  textareaRef={textareaRef as any} 
+                  value={value} 
+                  onChange={handleTextareaChange} 
+                  onKeyDown={(e) => { 
+                    if (e.key === 'Enter' && !e.shiftKey) { 
+                      e.preventDefault(); 
+                      handleSend(); 
+                    } 
+                  }} 
                 />
               )}
             </AnimatePresence>
