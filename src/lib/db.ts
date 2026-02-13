@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
+  console.error('CRITICAL: MONGODB_URI is undefined in process.env');
+  console.log('Current process.env keys:', Object.keys(process.env).filter(k => !k.includes('SECRET') && !k.includes('KEY')));
   throw new Error(
     "Please define the MONGODB_URI environment variable inside .env",
   );
