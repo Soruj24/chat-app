@@ -4,14 +4,15 @@ import http from "http";
 const server = http.createServer();
 const io = new Server(server, {
   cors: {
-    origin: "*", // Allow all origins for easier debugging during deployment
+    origin: ["https://chat-app-nine-neon-38.vercel.app", "http://localhost:3000", "http://127.0.0.1:3000"],
     methods: ["GET", "POST"],
     credentials: true
   },
-  transports: ["polling", "websocket"], // Start with polling for better compatibility
+  transports: ["websocket", "polling"], // Switch order to prefer websocket but keep polling
   allowEIO3: true,
   pingTimeout: 60000,
-  pingInterval: 25000
+  pingInterval: 25000,
+  connectTimeout: 45000
 });
 
 const users = new Map(); // userId -> socketId
