@@ -1,11 +1,11 @@
 "use client";
 
-import { Chat } from "@/lib/types";
+import { IChat } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
 interface ForwardChatItemProps {
-  chat: Chat;
+  chat: IChat;
   isSelected: boolean;
   onToggle: () => void;
 }

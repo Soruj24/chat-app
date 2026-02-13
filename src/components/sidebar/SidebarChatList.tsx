@@ -4,11 +4,11 @@ import { ChatListItem } from "../chat/ChatListItem";
 import { UserSearchResult } from "./UserSearchResult";
 import { Ghost, Users } from "lucide-react";
 
-import { Chat, User } from "@/lib/types";
+import { IChat, User } from "@/lib/types";
 
 interface SidebarChatListProps {
-  pinnedChats: Chat[];
-  otherChats: Chat[];
+  pinnedChats: IChat[];
+  otherChats: IChat[];
   allUsers?: User[];
   activeId?: string | null;
   onPin: (id: string) => void;

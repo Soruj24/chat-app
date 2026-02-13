@@ -1,12 +1,12 @@
 "use client";
 
 import { ArrowLeft, Search, X } from "lucide-react";
-import { Message, Chat } from "@/lib/types";
+import { Message, IChat } from "@/lib/types";
 import { useState, useMemo } from "react";
 
 interface ChatSearchViewProps {
   messages: Message[];
-  chat: Chat;
+  chat: IChat;
   onBack: () => void;
   onMessageClick?: (messageId: string) => void;
 }

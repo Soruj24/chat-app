@@ -1,12 +1,12 @@
 "use client";
 
-import { Chat } from "@/lib/types";
+import { IChat } from "@/lib/types";
 import { ChatListItemHeader } from "./ChatListItemHeader";
 import { ChatListItemMessage } from "./ChatListItemMessage";
 import { ChatListItemBadges } from "./ChatListItemBadges";
 
 interface ChatListItemContentProps {
-  chat: Chat;
+  chat: IChat;
 }
 
 export function ChatListItemContent({ chat }: ChatListItemContentProps) {

@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Image as ImageIcon, Check, X, Maximize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Chat } from "@/lib/types";
+import { IChat } from "@/lib/types";
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -14,7 +14,7 @@ interface Wallpaper {
 }
 
 interface ChatWallpaperViewProps {
-  chat: Chat;
+  chat: IChat;
   wallpapers: Wallpaper[];
   onBack: () => void;
   onWallpaperChange?: (url: string) => void;

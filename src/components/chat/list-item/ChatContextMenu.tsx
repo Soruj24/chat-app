@@ -2,11 +2,11 @@
 
 import { motion } from "framer-motion";
 import { Pin, BellOff, Volume2, Archive, Trash2 } from "lucide-react";
-import { Chat } from "@/lib/types";
+import { IChat } from "@/lib/types";
 import { RefObject } from "react";
 
 interface ChatContextMenuProps {
-  chat: Chat;
+  chat: IChat;
   menuRef: RefObject<HTMLDivElement | null>;
   menuPosition: { x: number; y: number };
   onPin?: (id: string) => void;

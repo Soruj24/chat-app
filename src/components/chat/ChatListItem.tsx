@@ -1,6 +1,6 @@
 "use client";
 
-import { Chat } from "@/lib/types";
+import { IChat } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,7 +11,7 @@ import { SwipeBackground } from "./list-item/SwipeBackground";
 import { useChatListItemActions } from "@/hooks/useChatListItemActions";
 
 interface ChatListItemProps {
-  chat: Chat;
+  chat: IChat;
   isActive: boolean;
   onPin?: (id: string) => void;
   onMute?: (id: string) => void;

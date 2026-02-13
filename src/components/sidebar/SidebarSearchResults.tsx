@@ -4,13 +4,13 @@ import { ChatListItem } from "../chat/ChatListItem";
 import { UserSearchResult } from "./UserSearchResult";
 import { MessageSearchResult } from "./MessageSearchResult";
 import { SearchEmptyState } from "./SearchEmptyState";
-import { Chat, Message, User } from "@/lib/types";
+import { IChat, Message, User } from "@/lib/types";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 
 interface SidebarSearchResultsProps {
   results: {
-    chats: Chat[];
+    chats: IChat[];
     messages: { chatId: string; message: Message }[];
     users: User[];
   };

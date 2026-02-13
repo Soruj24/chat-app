@@ -2,12 +2,12 @@
 
 import { ArrowLeft, Check, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Chat } from "@/lib/types";
+import { IChat } from "@/lib/types";
 import { useState } from "react";
 import { motion } from "framer-motion";
 
 interface ChatThemeViewProps {
-  chat: Chat;
+  chat: IChat;
   onBack: () => void;
   onThemeChange?: (color: string) => void;
 }

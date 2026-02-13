@@ -2,13 +2,13 @@
 
 import { cn } from "@/lib/utils";
 import { MessageStatus } from "../message/MessageStatus";
-import { Chat } from "@/lib/types";
+import { IChat } from "@/lib/types";
 
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 
 interface ChatListItemMessageProps {
-  chat: Chat;
+  chat: IChat;
 }
 
 export function ChatListItemMessage({ chat }: ChatListItemMessageProps) {

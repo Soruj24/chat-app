@@ -1,11 +1,11 @@
 "use client";
 
 import { ArrowLeft, Star } from "lucide-react";
-import { Message, Chat } from "@/lib/types";
+import { Message, IChat } from "@/lib/types";
 
 interface ChatStarredViewProps {
   starredMessages?: Message[];
-  chat: Chat;
+  chat: IChat;
   onBack: () => void;
   onMessageClick?: (messageId: string) => void;
 }

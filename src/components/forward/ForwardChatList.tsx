@@ -1,10 +1,10 @@
 "use client";
 
-import { Chat } from "@/lib/types";
+import { IChat } from "@/lib/types";
 import { ForwardChatItem } from "./ForwardChatItem";
 
 interface ForwardChatListProps {
-  chats: Chat[];
+  chats: IChat[];
   selectedChatIds: Set<string>;
   onToggleChat: (chatId: string) => void;
 }
