@@ -39,7 +39,7 @@ export async function POST(req: Request) {
       status: 'sent'
     });
 
-    // Update last message in Chat
+    
     await Chat.findByIdAndUpdate(chatId, {
       lastMessage: message._id
     });
