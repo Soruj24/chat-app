@@ -2,14 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useParams, usePathname } from "next/navigation";
-import { StoriesList } from "./stories/StoriesList";
+import { SidebarHeader } from "./sidebar/SidebarHeader";
+import { SidebarSearch } from "./sidebar/SidebarSearch";
+import { SidebarFilters } from "./sidebar/SidebarFilters";
 import { SettingsModal } from "./chat/SettingsModal";
 import { NewGroupModal } from "./chat/NewGroupModal";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
-import { SidebarHeader } from "./sidebar/SidebarHeader";
-import { SidebarSearch } from "./sidebar/SidebarSearch";
-import { SidebarFilters } from "./sidebar/SidebarFilters";
 import { SidebarSearchResults } from "./sidebar/SidebarSearchResults";
 import { SidebarChatList } from "./sidebar/SidebarChatList";
 import { useSidebar } from "@/hooks/useSidebar";
@@ -84,8 +83,6 @@ export default function Sidebar() {
           />
         )}
       </div>
-
-      {!isSearching && <StoriesList />}
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700">

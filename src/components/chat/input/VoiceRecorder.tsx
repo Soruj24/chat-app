@@ -7,6 +7,7 @@ interface VoiceRecorderProps {
   waveform: number[];
   onCancel: () => void;
   formatTime: (seconds: number) => string;
+  themeColor?: string;
 }
 
 export function VoiceRecorder({
@@ -14,6 +15,7 @@ export function VoiceRecorder({
   waveform,
   onCancel,
   formatTime,
+  themeColor
 }: VoiceRecorderProps) {
   return (
     <motion.div
@@ -22,10 +24,14 @@ export function VoiceRecorder({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       className="flex items-center gap-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl px-4 py-2"
+      style={themeColor ? { backgroundColor: `${themeColor}10` } : {}}
     >
       <div className="flex items-center gap-2">
         <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-        <span className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">
+        <span 
+          className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400"
+          style={themeColor ? { color: themeColor } : {}}
+        >
           {formatTime(recordingTime)}
         </span>
       </div>
@@ -37,6 +43,7 @@ export function VoiceRecorder({
             initial={{ height: 2 }}
             animate={{ height }}
             className="w-1 bg-blue-400 dark:bg-blue-600 rounded-full"
+            style={themeColor ? { backgroundColor: themeColor } : {}}
           />
         ))}
       </div>

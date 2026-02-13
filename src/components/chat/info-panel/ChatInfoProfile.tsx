@@ -2,16 +2,17 @@
 
 import Image from "next/image";
 import { Phone, Video, Search } from "lucide-react";
-import { Chat } from "@/lib/types";
+import { IChat } from "@/lib/types";
 import { useDispatch } from "react-redux";
 import { initiateCall } from "@/store/slices/callSlice";
 
 interface ChatInfoProfileProps {
-  chat: Chat;
+  chat: IChat;
   isGroup: boolean;
+  onSearchClick?: () => void;
 }
 
-export function ChatInfoProfile({ chat, isGroup }: ChatInfoProfileProps) {
+export function ChatInfoProfile({ chat, isGroup, onSearchClick }: ChatInfoProfileProps) {
   const dispatch = useDispatch();
 
   const handleCall = (type: 'audio' | 'video') => {
@@ -62,7 +63,10 @@ export function ChatInfoProfile({ chat, isGroup }: ChatInfoProfileProps) {
           </div>
           <span className="text-[10px] font-bold text-gray-400 uppercase">Video</span>
         </button>
-        <button className="flex flex-col items-center gap-1 group">
+        <button 
+          onClick={onSearchClick}
+          className="flex flex-col items-center gap-1 group"
+        >
           <div className="w-10 h-10 bg-gray-50 dark:bg-gray-800 text-gray-400 rounded-full flex items-center justify-center group-hover:bg-gray-600 group-hover:text-white transition-all">
             <Search className="w-5 h-5" />
           </div>

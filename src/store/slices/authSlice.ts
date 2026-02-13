@@ -1,12 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { User } from "@/lib/types";
 
 interface AuthState {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    starredMessages?: string[];
-  } | null;
+  user: User | null;
   token: string | null;
   isAuthenticated: boolean;
   loading: boolean;
@@ -32,12 +28,7 @@ const authSlice = createSlice({
     loginSuccess: (
       state,
       action: PayloadAction<{
-        user: {
-          id: string;
-          name: string;
-          email: string;
-          starredMessages?: string[];
-        };
+        user: User;
         token: string;
       }>,
     ) => {

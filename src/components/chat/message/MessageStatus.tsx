@@ -1,11 +1,20 @@
 import { cn } from "@/lib/utils";
+import { Clock, AlertCircle } from "lucide-react";
 
 interface MessageStatusProps {
-  status: "sent" | "delivered" | "read";
+  status: "sent" | "delivered" | "read" | "sending" | "error";
   className?: string;
 }
 
 export function MessageStatus({ status, className }: MessageStatusProps) {
+  if (status === "sending") {
+    return <Clock className={cn("w-3 h-3 text-white/50 animate-pulse", className)} />;
+  }
+
+  if (status === "error") {
+    return <AlertCircle className={cn("w-3.5 h-3.5 text-red-400", className)} />;
+  }
+
   if (status === "sent") {
     return (
       <svg

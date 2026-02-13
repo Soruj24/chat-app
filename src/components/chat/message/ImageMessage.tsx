@@ -1,6 +1,7 @@
 "use client";
 
 import { Download } from "lucide-react";
+import Image from "next/image";
 
 interface ImageMessageProps {
   url: string;
@@ -10,12 +11,17 @@ interface ImageMessageProps {
 export function ImageMessage({ url, onClick }: ImageMessageProps) {
   return (
     <div className="p-1 relative group/image">
-      <img
-        src={url}
-        alt="Message content"
-        className="rounded-xl w-full max-h-80 object-cover cursor-pointer hover:opacity-95 transition-opacity"
-        onClick={onClick}
-      />
+      <div className="relative w-full max-w-[300px] h-60 overflow-hidden rounded-xl">
+        <Image
+          src={url}
+          alt="Message content"
+          fill
+          unoptimized
+          className="object-cover cursor-pointer hover:opacity-95 transition-opacity"
+          onClick={onClick}
+          sizes="(max-width: 768px) 100vw, 300px"
+        />
+      </div>
       <a 
         href={url} 
         download 

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-export function TypingIndicator({ userName }: { userName: string }) {
+export function TypingIndicator({ userName, themeColor }: { userName: string; themeColor?: string }) {
   return (
     <div className="flex items-center gap-2 px-4 py-2">
       <div className="flex gap-1">
@@ -17,6 +17,7 @@ export function TypingIndicator({ userName }: { userName: string }) {
               delay: i * 0.2,
             }}
             className="w-1.5 h-1.5 bg-blue-500 rounded-full"
+            style={themeColor ? { backgroundColor: themeColor } : {}}
           />
         ))}
       </div>

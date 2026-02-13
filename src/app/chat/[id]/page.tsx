@@ -11,6 +11,7 @@ import { socketService } from "@/lib/socket/socket-client";
 import { MessageInput } from "@/components/chat/MessageInput";
 import { ChatInfoPanel } from "@/components/chat/ChatInfoPanel";
 import { ForwardModal } from "@/components/chat/ForwardModal";
+import { ContactPickerModal } from "@/components/chat/input/ContactPickerModal";
 import { AnimatePresence } from "framer-motion";
 import { ChatHeader } from "@/components/chat-page/ChatHeader";
 import { ChatSearch } from "@/components/chat-page/ChatSearch";
@@ -99,14 +100,22 @@ export default function ChatPage() {
     showScrollToBottom,
     unreadCount,
     isOnline,
+    setIsOnline,
     isTyping,
     typingUser,
+    isContactPickerOpen,
+    setIsContactPickerOpen,
     chatWallpaper,
     setChatWallpaper,
+    chatThemeColor,
+    setChatThemeColor,
     messagesEndRef,
     scrollContainerRef,
     scrollToBottom,
     handleSendMessage,
+    handleSendMedia,
+    handleSendLocation,
+    handleSendContact,
     handleScroll,
   } = useChatState(chat, setLocalMessages, setReplyingTo, replyingTo);
 
@@ -132,6 +141,12 @@ export default function ChatPage() {
               chatId,
               text: forwardingMessage.text,
               type: forwardingMessage.type || "text",
+              mediaUrl: forwardingMessage.mediaUrl,
+              fileName: forwardingMessage.fileName,
+              fileSize: forwardingMessage.fileSize,
+              duration: forwardingMessage.duration,
+              location: forwardingMessage.location,
+              contact: forwardingMessage.contact,
               isForwarded: true,
             }),
           });
@@ -153,6 +168,12 @@ export default function ChatPage() {
               status: "sent",
               isMe: true,
               type: savedMsg.type,
+              mediaUrl: savedMsg.mediaUrl,
+              fileName: savedMsg.fileName,
+              fileSize: savedMsg.fileSize,
+              duration: savedMsg.duration,
+              location: savedMsg.location,
+              contact: savedMsg.contact,
               isForwarded: true,
             };
 
@@ -276,7 +297,7 @@ export default function ChatPage() {
   return (
     <div className="flex flex-col h-full bg-[#f0f2f5] dark:bg-gray-950 relative overflow-hidden">
       <ChatHeader
-        chat={chat}
+        chat={{ ...chat, themeColor: chatThemeColor }}
         isOnline={isOnline}
         isSearchOpen={isSearchOpen}
         setIsSearchOpen={setIsSearchOpen}
@@ -317,6 +338,7 @@ export default function ChatPage() {
           handleScroll(isPaginationLoading, isLoading, loadMoreMessages)
         }
         chatWallpaper={chatWallpaper}
+        themeColor={chatThemeColor}
         isPaginationLoading={isPaginationLoading}
         isLoading={isLoading}
         localMessages={localMessages}
@@ -364,10 +386,21 @@ export default function ChatPage() {
         value={inputValue}
         onChange={setInputValue}
         onSendMessage={handleSendMessage}
+        onSendMedia={handleSendMedia}
+          onSendVoice={handleSendMedia}
+          onSendLocation={handleSendLocation}
+          onSendContact={() => setIsContactPickerOpen(true)}
         replyingTo={replyingTo}
         onCancelReply={() => setReplyingTo(null)}
         showEmojiPicker={showEmojiPicker}
         setShowEmojiPicker={setShowEmojiPicker}
+        themeColor={chatThemeColor}
+      />
+
+      <ContactPickerModal
+        isOpen={isContactPickerOpen}
+        onClose={() => setIsContactPickerOpen(false)}
+        onSelect={handleSendContact}
       />
 
       <Lightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
@@ -409,9 +442,11 @@ export default function ChatPage() {
       <AnimatePresence>
         {showInfo && (
           <ChatInfoPanel
-            chat={{ ...chat, wallpaper: chatWallpaper }}
+            chat={{ ...chat, wallpaper: chatWallpaper, themeColor: chatThemeColor }}
+            messages={localMessages}
             onClose={() => setShowInfo(false)}
             onWallpaperChange={setChatWallpaper}
+            onThemeChange={setChatThemeColor}
             starredMessages={starredMessages}
             onMessageClick={(msgId) => {
               scrollToMessage(msgId);

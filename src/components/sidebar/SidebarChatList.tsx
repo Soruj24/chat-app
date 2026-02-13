@@ -45,14 +45,14 @@ export function SidebarChatList({
   return (
     <div className="divide-y divide-gray-50 dark:divide-gray-800/30">
       {pinnedChats.length > 0 && (
-        <div className="pb-2" key="pinned-chats">
+        <div className="pb-2">
           <div className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
             <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
             Pinned
           </div>
           {pinnedChats.map((chat) => (
             <ChatListItem 
-              key={chat.id} 
+              key={`pinned-${chat.id}`} 
               chat={chat} 
               isActive={activeId === chat.id}
               onPin={onPin}
@@ -64,7 +64,7 @@ export function SidebarChatList({
         </div>
       )}
 
-      <div key="other-chats">
+      <div>
         {pinnedChats.length > 0 && otherChats.length > 0 && (
           <div className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
             All Messages
@@ -72,7 +72,7 @@ export function SidebarChatList({
         )}
         {otherChats.map((chat) => (
           <ChatListItem 
-            key={chat.id} 
+            key={`other-${chat.id}`} 
             chat={chat} 
             isActive={activeId === chat.id}
             onPin={onPin}
@@ -85,13 +85,13 @@ export function SidebarChatList({
 
       {/* All Users Section */}
       {allUsers.length > 0 && (
-        <div className="pt-2" key="all-users">
+        <div className="pt-2">
           <div className="px-4 py-2 text-[10px] font-black text-blue-500 dark:text-blue-400 uppercase tracking-widest flex items-center gap-2">
             <Users className="w-3 h-3" />
             All Users
           </div>
           {allUsers.map((user) => (
-            <UserSearchResult key={user.id} user={user} />
+            <UserSearchResult key={`user-${user.id}`} user={user} />
           ))}
         </div>
       )}

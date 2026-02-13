@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Copy, Trash2, Share2, CornerUpRight, Pin, Star } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { QuickReactions } from "./context-menu/QuickReactions";
 import { ContextMenuItem } from "./context-menu/ContextMenuItem";
 
@@ -33,7 +33,7 @@ export function ContextMenu({
   onStar,
   onReact,
   isPinned,
-  isStarred
+  isStarred,
 }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -54,15 +54,26 @@ export function ContextMenu({
     onClose();
   };
 
+  // Determine transform based on screen position to avoid overflow
+  const screenWidth = typeof window !== "undefined" ? window.innerWidth : 0;
+  const screenHeight = typeof window !== "undefined" ? window.innerHeight : 0;
+  
+  const isRightSide = x > screenWidth / 2;
+  const isBottomSide = y > screenHeight / 2;
+
   return (
     <AnimatePresence>
       <motion.div
         ref={menuRef}
-        initial={{ opacity: 0, scale: 0.9, y: -10 }}
+        initial={{ opacity: 0, scale: 0.9, y: isBottomSide ? 10 : -10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: -10 }}
+        exit={{ opacity: 0, scale: 0.9, y: isBottomSide ? 10 : -10 }}
         className="fixed z-[100] bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-700 py-2 min-w-[180px] overflow-hidden"
-        style={{ left: x, top: y }}
+        style={{ 
+          left: x, 
+          top: y,
+          transform: `translate(${isRightSide ? "-100%" : "0"}, ${isBottomSide ? "-100%" : "0"})`
+        }}
       >
         <QuickReactions emojis={emojis} onReact={onReact} onClose={onClose} />
 
@@ -77,14 +88,18 @@ export function ContextMenu({
             label={isStarred ? "Unstar" : "Star"}
             icon={Star}
             onClick={() => handleAction(onStar)}
-            iconColor={isStarred ? "text-yellow-400" : "text-yellow-500"}
+            iconColor={
+              isStarred ? "text-yellow-400" : "text-gray-400 dark:text-gray-400"
+            }
             iconFill={isStarred}
           />
           <ContextMenuItem
             label={isPinned ? "Unpin" : "Pin"}
             icon={Pin}
             onClick={() => handleAction(onPin)}
-            iconColor={isPinned ? "text-blue-400" : "text-blue-500"}
+            iconColor={
+              isPinned ? "text-blue-400" : "text-gray-400 dark:text-gray-400"
+            }
             iconFill={isPinned}
           />
           <ContextMenuItem
@@ -99,9 +114,9 @@ export function ContextMenu({
             onClick={() => handleAction(onForward)}
             iconColor="text-green-500"
           />
-          
+
           <div className="h-px bg-gray-50 dark:bg-gray-700 my-1" />
-          
+
           <ContextMenuItem
             label="Delete"
             icon={Trash2}

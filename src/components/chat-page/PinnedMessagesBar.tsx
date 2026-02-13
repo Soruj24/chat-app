@@ -23,7 +23,7 @@ export function PinnedMessagesBar({
           initial={{ height: 0, opacity: 0 }}
           animate={{ height: "auto", opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
-          className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 overflow-hidden z-10"
+          className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 overflow-hidden z-10"
         >
           <div
             className="flex items-center justify-between px-4 py-2 gap-3 cursor-pointer group"

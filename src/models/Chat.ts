@@ -11,6 +11,8 @@ export interface IChat extends Document {
   pinnedBy: mongoose.Types.ObjectId[];
   archivedBy: mongoose.Types.ObjectId[];
   mutedBy: mongoose.Types.ObjectId[];
+  wallpaper?: string;
+  themeColor?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -26,6 +28,8 @@ const ChatSchema: Schema = new Schema({
   pinnedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
   archivedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
   mutedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  wallpaper: { type: String },
+  themeColor: { type: String },
 }, {
   timestamps: true
 });

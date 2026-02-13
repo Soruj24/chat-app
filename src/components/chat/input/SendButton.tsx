@@ -8,6 +8,7 @@ interface SendButtonProps {
   onSend: () => void;
   onStartRecording: () => void;
   onStopRecording: () => void;
+  themeColor?: string;
 }
 
 export function SendButton({
@@ -16,12 +17,14 @@ export function SendButton({
   onSend,
   onStartRecording,
   onStopRecording,
+  themeColor
 }: SendButtonProps) {
   if (hasValue || isRecording) {
     return (
       <button 
         onClick={isRecording ? onStopRecording : onSend}
-        className="p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all duration-200 active:scale-90 shadow-lg shadow-blue-500/20"
+        className="p-2.5 bg-blue-600 text-white rounded-full hover:opacity-90 transition-all duration-200 active:scale-90 shadow-lg shadow-blue-500/20"
+        style={themeColor ? { backgroundColor: themeColor } : {}}
       >
         <Send className="w-4.5 h-4.5" />
       </button>

@@ -16,26 +16,57 @@ interface MessageInputProps {
   value: string;
   onChange: (value: string) => void;
   onSendMessage: () => void;
+  onSendMedia?: (file: File) => void;
+  onSendLocation?: () => void;
+  onSendContact?: () => void;
+  onSendVoice?: (file: File) => void;
+  onTyping?: (isTyping: boolean) => void; // Added this
   replyingTo?: Message | null;
   onCancelReply?: () => void;
   showEmojiPicker: boolean;
   setShowEmojiPicker: (show: boolean) => void;
+  themeColor?: string;
 }
 
 export function MessageInput({
   value,
   onChange,
   onSendMessage,
+  onSendMedia,
+  onSendLocation,
+  onSendContact,
+  onSendVoice,
   replyingTo,
   onCancelReply,
   showEmojiPicker,
-  setShowEmojiPicker
+  setShowEmojiPicker,
+  onTyping,
+  themeColor
 }: MessageInputProps) {
   const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (value.trim()) {
+      onTyping?.(true);
+      
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      
+      typingTimeoutRef.current = setTimeout(() => {
+        onTyping?.(false);
+      }, 2000);
+    } else {
+      onTyping?.(false);
+    }
+  }, [value, onTyping]);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   // Mock waveform data
   const [waveform, setWaveform] = useState<number[]>(Array(20).fill(20));
@@ -58,23 +89,56 @@ export function MessageInput({
     }
   };
 
-  const startRecording = () => {
-    setIsRecording(true);
-    setRecordingTime(0);
-    recordingIntervalRef.current = setInterval(() => {
-      setRecordingTime(prev => prev + 1);
-    }, 1000);
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const file = new File([audioBlob], "voice_message.webm", { type: 'audio/webm' });
+        const duration = formatTime(recordingTime);
+        (file as File & { duration?: string }).duration = duration; // Add duration to file object
+        onSendVoice?.(file);
+        
+        // Stop all tracks in the stream
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
+    } catch (error) {
+      console.error("Error starting recording:", error);
+      alert("Could not access microphone");
+    }
   };
 
   const stopRecording = (cancel = false) => {
+    if (!mediaRecorderRef.current) return;
+
+    if (cancel) {
+      mediaRecorderRef.current.onstop = null;
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
+    } else {
+      mediaRecorderRef.current.stop();
+    }
+
     setIsRecording(false);
     if (recordingIntervalRef.current) {
       clearInterval(recordingIntervalRef.current);
-    }
-    if (!cancel) {
-      // Logic to send voice message would go here
-      onChange("🎤 Voice message (" + formatTime(recordingTime) + ")");
-      setTimeout(onSendMessage, 0);
     }
   };
 
@@ -107,33 +171,48 @@ export function MessageInput({
   }, [value]);
 
   return (
-    <footer className="sticky bottom-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-gray-200/60 dark:border-gray-800/60 p-2.5 md:p-3 z-10">
-      <div className="max-w-4xl mx-auto relative">
+    <footer className="sticky bottom-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800/50 p-2.5 md:p-3.5 z-20">
+      <div className="max-w-4xl mx-auto relative flex flex-col gap-2">
         <AnimatePresence>
           <AttachmentMenu 
             isOpen={isAttachmentMenuOpen} 
             onClose={() => setIsAttachmentMenuOpen(false)} 
+            onFileSelect={(file) => onSendMedia?.(file)}
+            onLocationSelect={() => onSendLocation?.()}
+            onContactSelect={() => onSendContact?.()}
           />
         </AnimatePresence>
 
-        {replyingTo && (
-          <ReplyPreview 
-            replyingTo={replyingTo} 
-            onCancel={onCancelReply || (() => {})} 
-          />
-        )}
+        <AnimatePresence>
+          {replyingTo && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: "auto" }}
+              exit={{ opacity: 0, y: 10, height: 0 }}
+              className="overflow-hidden"
+            >
+              <ReplyPreview 
+                replyingTo={replyingTo} 
+                onCancel={onCancelReply || (() => {})} 
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
         
-        <div className="flex items-end gap-1.5 md:gap-2">
+        <div className="flex items-end gap-2 md:gap-3">
           {!isRecording && (
-            <InputActions 
-              showEmojiPicker={showEmojiPicker}
-              onEmojiPickerToggle={() => setShowEmojiPicker(!showEmojiPicker)}
-              isAttachmentMenuOpen={isAttachmentMenuOpen}
-              onAttachmentMenuToggle={() => setIsAttachmentMenuOpen(!isAttachmentMenuOpen)}
-            />
+            <div className="flex items-center mb-1">
+              <InputActions 
+                showEmojiPicker={showEmojiPicker}
+                onEmojiPickerToggle={() => setShowEmojiPicker(!showEmojiPicker)}
+                isAttachmentMenuOpen={isAttachmentMenuOpen}
+                onAttachmentMenuToggle={() => setIsAttachmentMenuOpen(!isAttachmentMenuOpen)}
+                themeColor={themeColor}
+              />
+            </div>
           )}
           
-          <div className="flex-1 relative min-w-0">
+          <div className="flex-1 relative min-w-0 bg-gray-100 dark:bg-gray-800/40 rounded-2xl border border-transparent focus-within:border-blue-500/30 focus-within:bg-white dark:focus-within:bg-gray-800/60 transition-all duration-200 shadow-sm">
             <AnimatePresence mode="wait">
               {isRecording ? (
                 <VoiceRecorder 
@@ -141,10 +220,11 @@ export function MessageInput({
                   waveform={waveform}
                   onCancel={() => stopRecording(true)}
                   formatTime={formatTime}
+                  themeColor={themeColor}
                 />
               ) : (
                 <TextInput 
-                  textareaRef={textareaRef as any} 
+                  textareaRef={textareaRef as React.RefObject<HTMLTextAreaElement>} 
                   value={value} 
                   onChange={handleTextareaChange} 
                   onKeyDown={(e) => { 
@@ -158,13 +238,14 @@ export function MessageInput({
             </AnimatePresence>
           </div>
 
-          <div className="mb-0.5">
+          <div className="mb-1 flex items-center">
             <SendButton 
               isRecording={isRecording}
               hasValue={!!value.trim()}
               onSend={handleSend}
               onStartRecording={startRecording}
               onStopRecording={() => stopRecording(false)}
+              themeColor={themeColor}
             />
           </div>
         </div>

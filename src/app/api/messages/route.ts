@@ -14,7 +14,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { chatId, text, type, mediaUrl, replyTo, isForwarded } = await req.json();
+    const { chatId, text, type, mediaUrl, fileName, fileSize, duration, location, contact, replyTo, isForwarded } = await req.json();
 
     if (!chatId || !mongoose.Types.ObjectId.isValid(chatId)) {
       return NextResponse.json({ message: "Invalid chatId" }, { status: 400 });
@@ -26,6 +26,11 @@ export async function POST(req: Request) {
       text,
       type: type || 'text',
       mediaUrl,
+      fileName,
+      fileSize,
+      duration,
+      location,
+      contact,
       replyTo: replyTo && mongoose.Types.ObjectId.isValid(replyTo) 
         ? new mongoose.Types.ObjectId(replyTo) 
         : undefined,

@@ -4,7 +4,7 @@ import http from "http";
 const server = http.createServer();
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://127.0.0.1:3000"], // Explicitly allow Next.js dev server
+    origin: ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3002", "http://127.0.0.1:3002"], // Explicitly allow Next.js dev server
     methods: ["GET", "POST"],
     credentials: true
   },

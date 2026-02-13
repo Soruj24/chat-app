@@ -5,12 +5,16 @@ import { Message } from "@/lib/types";
 
 interface RawMessage {
   _id: string;
-  sender: string | { _id: string; name: string };
+  sender: string | { _id: string; name: string; avatar?: string };
   text?: string;
   timestamp: string;
   status: Message["status"];
   type: Message["type"];
   mediaUrl?: string;
+  fileName?: string;
+  fileSize?: string;
+  location?: Message["location"];
+  contact?: Message["contact"];
   isForwarded?: boolean;
   reactions?: Array<{
     userId: string;
@@ -53,10 +57,12 @@ export function useChatMessages(chatId: string) {
           const formattedMessages = data.map((msg: RawMessage) => {
             const senderId = typeof msg.sender === 'object' ? msg.sender._id?.toString() : msg.sender?.toString();
             const senderName = typeof msg.sender === 'object' ? msg.sender.name : undefined;
+            const senderAvatar = typeof msg.sender === 'object' ? msg.sender.avatar : undefined;
             return {
               id: msg._id,
               senderId,
               senderName,
+              senderAvatar,
               text: msg.text,
               timestamp: new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
               date: formatDate(new Date(msg.timestamp)),
@@ -64,6 +70,10 @@ export function useChatMessages(chatId: string) {
               isMe: senderId === user?.id,
               type: msg.type,
               mediaUrl: msg.mediaUrl,
+              fileName: msg.fileName,
+              fileSize: msg.fileSize,
+              location: msg.location,
+              contact: msg.contact,
               isForwarded: msg.isForwarded,
               reactions: msg.reactions?.reduce((acc: NonNullable<Message["reactions"]>, curr) => {
                 const existing = acc.find(r => r.emoji === curr.emoji);

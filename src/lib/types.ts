@@ -2,7 +2,9 @@ export type UserStatus = "online" | "offline" | "typing" | "last seen recently";
 
 export interface User {
   id: string;
+  _id?: string;
   name: string;
+  email: string;
   avatar: string;
   status: UserStatus;
   phoneNumber?: string;
@@ -10,33 +12,27 @@ export interface User {
   bio?: string;
   lastSeen?: string;
   settings?: UserSettings;
+  starredMessages?: string[];
 }
 
 export interface UserSettings {
   theme: "light" | "dark" | "system";
-  notifications: boolean;
+  fontSize: "small" | "medium" | "large";
+  showNotifications: boolean;
+  messagePreview: boolean;
+  soundEffects: boolean;
   readReceipts: boolean;
   lastSeen: boolean;
   twoFactorAuth: boolean;
 }
 
-export interface Story {
-  id: string;
-  userId: string;
-  userName: string;
-  userAvatar: string;
-  mediaUrl: string;
-  type: "image" | "video";
-  timestamp: string;
-  isRead: boolean;
-}
-
-export type MessageType = "text" | "image" | "file" | "voice";
+export type MessageType = "text" | "image" | "video" | "file" | "voice" | "location" | "contact";
 
 export interface Message {
   id: string;
   senderId: string;
   senderName?: string; // For group chats
+  senderAvatar?: string; // Added for profile pictures
   text?: string;
   timestamp: string;
   date: string;
@@ -47,6 +43,16 @@ export interface Message {
   fileName?: string;
   fileSize?: string;
   duration?: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+    address?: string;
+  };
+  contact?: {
+    name: string;
+    phoneNumber: string;
+    avatar?: string;
+  };
   replyTo?: {
     id: string;
     text?: string;
@@ -62,7 +68,7 @@ export interface Message {
   }[];
 }
 
-export interface Chat {
+export interface IChat {
   id: string;
   type: "individual" | "group" | "private"; // Added private
   otherParticipantId?: string; // Added this
@@ -72,7 +78,8 @@ export interface Chat {
     text: string;
     timestamp: string;
     senderId: string;
-    status?: "sent" | "delivered" | "read";
+    status?: "sent" | "delivered" | "read" | "sending" | "error";
+    type?: MessageType;
   };
   unreadCount: number;
   members?: User[];
@@ -81,6 +88,7 @@ export interface Chat {
   isPinned?: boolean;
   isArchived?: boolean;
   status?: UserStatus;
+  isTyping?: boolean; // Added this
   wallpaper?: string;
   themeColor?: string;
   pinnedMessageIds?: string[];

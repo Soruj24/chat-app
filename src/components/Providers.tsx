@@ -9,7 +9,7 @@ import { RootState } from "@/store/store";
 import { useRouter, usePathname } from "next/navigation";
 import { setUser, logout } from "@/store/slices/authSlice";
 import { receiveCall, endCall } from "@/store/slices/callSlice";
-import { addMessage } from "@/store/slices/chatSlice";
+import { addMessage, setTypingStatus } from "@/store/slices/chatSlice";
 import { socketService } from "@/lib/socket/socket-client";
 import { Toaster, toast } from "react-hot-toast";
 import Image from "next/image";
@@ -101,6 +101,23 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
         // Show toast notification only if not the active chat
         if (activeChatId !== chatId) {
+          // Handle notifications and sounds based on user settings
+          if (user?.settings?.showNotifications) {
+            if (Notification.permission === "granted") {
+              new Notification(message.senderName || "New Message", {
+                body: user.settings.messagePreview ? (message.text || "New attachment") : "You have a new message",
+                icon: "/favicon.ico"
+              });
+            } else if (Notification.permission !== "denied") {
+              Notification.requestPermission();
+            }
+          }
+
+          if (user?.settings?.soundEffects) {
+            const audio = new Audio("/sounds/notification.mp3");
+            audio.play().catch(e => console.log("Audio play blocked by browser"));
+          }
+
           toast.custom(
             (t) => (
               <div
@@ -152,13 +169,22 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
         }
       });
 
+      // Listen for typing indicator
+      socketService.on("typing", ({ chatId, userId, isTyping }) => {
+        // Only show typing for others
+        if (userId !== user.id) {
+          dispatch(setTypingStatus({ chatId, isTyping }));
+        }
+      });
+
       return () => {
         socketService.off("incoming_call");
         socketService.off("call_ended");
         socketService.off("new_message_notification");
+        socketService.off("typing");
       };
     }
-  }, [user?.id, dispatch]);
+  }, [user?.id, activeChatId, dispatch]);
 
   useEffect(() => {
     if (!isChecking) {

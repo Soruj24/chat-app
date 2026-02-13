@@ -5,8 +5,21 @@ export interface IMessage extends Document {
   receiver?: mongoose.Types.ObjectId;
   chatId: mongoose.Types.ObjectId;
   text?: string;
-  type: 'text' | 'image' | 'file' | 'voice';
+  type: 'text' | 'image' | 'video' | 'file' | 'voice' | 'location' | 'contact';
   mediaUrl?: string;
+  fileName?: string;
+  fileSize?: string;
+  duration?: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+    address?: string;
+  };
+  contact?: {
+    name: string;
+    phoneNumber: string;
+    avatar?: string;
+  };
   replyTo?: mongoose.Types.ObjectId;
   isForwarded?: boolean;
   status: 'sent' | 'delivered' | 'read';
@@ -22,8 +35,21 @@ const MessageSchema: Schema = new Schema({
   receiver: { type: Schema.Types.ObjectId, ref: 'User' },
   chatId: { type: Schema.Types.ObjectId, ref: 'Chat', required: true },
   text: { type: String },
-  type: { type: String, enum: ['text', 'image', 'file', 'voice'], default: 'text' },
+  type: { type: String, enum: ['text', 'image', 'video', 'file', 'voice', 'location', 'contact'], default: 'text' },
   mediaUrl: { type: String },
+  fileName: { type: String },
+  fileSize: { type: String },
+  duration: { type: String },
+  location: {
+    latitude: { type: Number },
+    longitude: { type: Number },
+    address: { type: String }
+  },
+  contact: {
+    name: { type: String },
+    phoneNumber: { type: String },
+    avatar: { type: String }
+  },
   replyTo: { type: Schema.Types.ObjectId, ref: 'Message' },
   isForwarded: { type: Boolean, default: false },
   status: { type: String, enum: ['sent', 'delivered', 'read'], default: 'sent' },

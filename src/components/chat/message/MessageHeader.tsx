@@ -9,9 +9,10 @@ interface MessageHeaderProps {
   message: Message;
   isMe: boolean;
   showSenderName?: boolean;
+  themeColor?: string;
 }
 
-export function MessageHeader({ message, isMe, showSenderName }: MessageHeaderProps) {
+export function MessageHeader({ message, isMe, showSenderName, themeColor }: MessageHeaderProps) {
   const hasHeader = (showSenderName && message.senderName && !isMe) || message.replyTo || message.isForwarded;
   
   if (!hasHeader) return null;
@@ -22,7 +23,7 @@ export function MessageHeader({ message, isMe, showSenderName }: MessageHeaderPr
         <MessageSenderName name={message.senderName} />
       )}
       {message.replyTo && (
-        <MessageReplyPreview replyTo={message.replyTo} isMe={isMe} />
+        <MessageReplyPreview replyTo={message.replyTo} isMe={isMe} themeColor={themeColor} />
       )}
       {message.isForwarded && (
         <MessageForwardedLabel isMe={isMe} />

@@ -6,7 +6,7 @@ import { Message } from "@/lib/types";
 interface ChatInfoActionsProps {
   isGroup: boolean;
   starredMessagesCount: number;
-  setViewMode: (mode: "info" | "media" | "wallpaper" | "starred") => void;
+  setViewMode: (mode: "info" | "media" | "wallpaper" | "starred" | "search" | "theme") => void;
 }
 
 export function ChatInfoActions({ isGroup, starredMessagesCount, setViewMode }: ChatInfoActionsProps) {
@@ -22,11 +22,24 @@ export function ChatInfoActions({ isGroup, starredMessagesCount, setViewMode }: 
         </div>
       </button>
       <button 
+        onClick={() => setViewMode("theme")}
+        className="w-full flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl transition-colors text-gray-700 dark:text-gray-300"
+      >
+        <div className="flex items-center gap-3">
+          <Palette className="w-4 h-4 text-blue-500" />
+          <span className="text-sm font-medium">Theme Color</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded-full bg-blue-500" />
+          <ChevronRight className="w-4 h-4 text-gray-400" />
+        </div>
+      </button>
+      <button 
         onClick={() => setViewMode("wallpaper")}
         className="w-full flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl transition-colors text-gray-700 dark:text-gray-300"
       >
         <div className="flex items-center gap-3">
-          <Palette className="w-4 h-4" />
+          <Palette className="w-4 h-4 text-purple-500" />
           <span className="text-sm font-medium">Chat Wallpaper</span>
         </div>
         <ChevronRight className="w-4 h-4 text-gray-400" />

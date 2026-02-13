@@ -15,6 +15,8 @@ import { MessageHeader } from "./message/MessageHeader";
 import { MessageFooter } from "./message/MessageFooter";
 import { useMessageSwipe } from "@/hooks/useMessageSwipe";
 import { useDoubleTap } from "@/hooks/useDoubleTap";
+import Image from "next/image";
+import { getUserColor } from "@/lib/utils";
 
 interface MessageBubbleProps {
   message: Message;
@@ -26,6 +28,7 @@ interface MessageBubbleProps {
   onLike?: (message: Message) => void;
   showSenderName?: boolean;
   highlight?: string;
+  themeColor?: string;
 }
 
 export function MessageBubble({ 
@@ -36,6 +39,7 @@ export function MessageBubble({
   onReaction,
   onContextMenu,
   onLike,
+  themeColor,
   showSenderName,
   highlight
 }: MessageBubbleProps) {
@@ -72,8 +76,8 @@ export function MessageBubble({
         ease: [0.23, 1, 0.32, 1]
       }}
       className={cn(
-        "flex w-full mb-1 group px-4 relative touch-pan-y",
-        isMe ? "justify-end" : "justify-start"
+        "flex w-full mb-2 group px-4 relative touch-pan-y items-start gap-3",
+        isMe ? "flex-row-reverse" : "flex-row"
       )}
       onClick={handleDoubleTap}
       onContextMenu={(e) => {
@@ -81,6 +85,28 @@ export function MessageBubble({
         onContextMenu?.(e, message);
       }}
     >
+      {/* Sender Avatar */}
+      <div className="flex-shrink-0 z-10 mt-0.5">
+        <div className="relative w-9 h-9 rounded-full overflow-hidden ring-1 ring-black/5 dark:ring-white/10 shadow-sm bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+          {message.senderAvatar ? (
+            <Image
+              src={message.senderAvatar}
+              alt={message.senderName || "User"}
+              fill
+              className="object-cover"
+              unoptimized
+            />
+          ) : (
+            <div className={cn(
+              "w-full h-full flex items-center justify-center bg-gradient-to-br text-white text-xs font-semibold uppercase tracking-wider",
+              getUserColor(message.senderName || "User")
+            )}>
+              {(message.senderName || "U").charAt(0)}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Swipe to reply indicator */}
       <SwipeToReplyIndicator 
         x={x} 
@@ -90,8 +116,9 @@ export function MessageBubble({
       />
 
       <div className={cn(
-        "flex max-w-[70%] relative",
-        isMe ? "flex-row-reverse" : "flex-row"
+        "flex flex-col relative",
+        isMe ? "items-end" : "items-start",
+        "max-w-[75%]"
       )}>
         {/* Like animation heart */}
         <MessageLikeAnimation showHeart={showHeart} />
@@ -121,20 +148,22 @@ export function MessageBubble({
 
         <div
           className={cn(
-            "rounded-2xl shadow-[0_1px_2px_rgba(0,0,0,0.1)] relative transition-all duration-200",
+            "rounded-2xl shadow-sm relative transition-all duration-200",
             isMe
-              ? "bg-blue-600 text-white rounded-tr-none"
+              ? !themeColor && "bg-blue-600 text-white rounded-tr-none"
               : "bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-tl-none border-transparent dark:border-gray-700 shadow-sm"
           )}
+          style={isMe && themeColor ? { backgroundColor: themeColor, color: '#fff' } : {}}
         >
           {/* Tail Design */}
-          <MessageTail isMe={isMe} />
+          <MessageTail isMe={isMe} themeColor={themeColor} />
 
           {/* Message Header (Sender name, Reply, Forwarded) */}
           <MessageHeader 
             message={message} 
             isMe={isMe} 
             showSenderName={showSenderName} 
+            themeColor={themeColor}
           />
 
           {/* Message Content */}
@@ -143,6 +172,7 @@ export function MessageBubble({
             isMe={isMe} 
             highlight={highlight} 
             onImageClick={onImageClick} 
+            themeColor={themeColor}
           />
 
           {/* Message Footer (Timestamp, Status, Reactions) */}

@@ -22,6 +22,7 @@ interface ChatHeaderProps {
     otherParticipantId?: string;
     name: string;
     avatar: string;
+    themeColor?: string;
   };
   isOnline: boolean;
   isSearchOpen: boolean;
@@ -63,7 +64,7 @@ export function ChatHeader({
     );
   };
   return (
-    <header className="sticky top-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 p-2.5 md:p-3 flex items-center justify-between z-20">
+    <header className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 p-2.5 md:p-3 flex items-center justify-between z-20">
       <div className="flex items-center gap-2 md:gap-3 min-w-0">
         <Link
           href="/"
@@ -77,10 +78,14 @@ export function ChatHeader({
             alt={chat.name}
             fill
             unoptimized
-            className="rounded-full ring-2 ring-gray-100 dark:ring-gray-800 shadow-sm object-cover"
+            className="rounded-full shadow-sm object-cover"
+            style={chat.themeColor ? { boxShadow: `0 0 0 2px ${chat.themeColor}` } : {}}
           />
           {isOnline && (
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full z-10" />
+            <div 
+              className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full z-10" 
+              style={chat.themeColor ? { backgroundColor: chat.themeColor } : {}}
+            />
           )}
         </div>
         <div
@@ -103,6 +108,7 @@ export function ChatHeader({
                     "text-[11px] md:text-xs font-medium",
                     isOnline ? "text-green-600" : "text-gray-500",
                   )}
+                  style={isOnline && chat.themeColor ? { color: chat.themeColor } : {}}
                 >
                   {isOnline ? "Online" : "Offline"}
                 </p>
@@ -121,6 +127,7 @@ export function ChatHeader({
               ? "bg-blue-50 dark:bg-blue-900/30 text-blue-500"
               : "hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500",
           )}
+          style={isSearchOpen && chat.themeColor ? { backgroundColor: `${chat.themeColor}20`, color: chat.themeColor } : {}}
         >
           <Search className="w-5 h-5" />
         </button>

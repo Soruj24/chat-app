@@ -18,7 +18,7 @@ export function ChatListItemMessage({ chat }: ChatListItemMessageProps) {
 
   return (
     <div className="flex items-center gap-1 min-w-0 flex-1">
-      {isMe && chat.lastMessage?.status && (
+      {isMe && chat.lastMessage?.status && !chat.isTyping && (
         <MessageStatus
           status={chat.lastMessage.status}
           className="flex-shrink-0 scale-90"
@@ -32,8 +32,13 @@ export function ChatListItemMessage({ chat }: ChatListItemMessageProps) {
             : "text-gray-500 dark:text-gray-400",
         )}
       >
-        {chat.status === "typing" ? (
-          <span className="text-blue-600 italic font-medium">
+        {chat.isTyping ? (
+          <span className="text-blue-500 dark:text-blue-400 italic font-medium flex items-center gap-1">
+            <span className="flex gap-0.5">
+              <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.3s]" />
+              <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.15s]" />
+              <span className="w-1 h-1 bg-current rounded-full animate-bounce" />
+            </span>
             typing...
           </span>
         ) : (
@@ -51,6 +56,16 @@ export function ChatListItemMessage({ chat }: ChatListItemMessageProps) {
             {chat.lastMessage?.type === "file" && (
               <span className="flex items-center gap-1 text-blue-500">
                 📄 File
+              </span>
+            )}
+            {chat.lastMessage?.type === "location" && (
+              <span className="flex items-center gap-1 text-green-500">
+                📍 Location
+              </span>
+            )}
+            {chat.lastMessage?.type === "contact" && (
+              <span className="flex items-center gap-1 text-orange-500">
+                👤 Contact
               </span>
             )}
             {(!chat.lastMessage?.type ||

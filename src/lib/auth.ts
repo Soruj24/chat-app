@@ -11,6 +11,13 @@ export interface AuthUser {
   email: string;
   username?: string;
   avatar?: string;
+  settings?: {
+    showNotifications: boolean;
+    messagePreview: boolean;
+    soundEffects: boolean;
+    theme: 'light' | 'dark' | 'system';
+    fontSize: 'small' | 'medium' | 'large';
+  };
 }
 
 export async function signToken(payload: any) {
@@ -54,6 +61,7 @@ export async function getAuthUser() {
       email: user.email,
       username: user.username,
       avatar: user.avatar,
+      settings: user.settings
     } as AuthUser;
   } catch (error) {
     console.error("Auth helper error:", error);

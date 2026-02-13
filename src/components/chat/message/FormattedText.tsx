@@ -46,7 +46,7 @@ export function FormattedText({ text, query = "" }: FormattedTextProps) {
         const sub = p.split(/(\*[^*]+\*)/g);
         sub.forEach((s, i) => {
           if (s.startsWith('*') && s.endsWith('*')) {
-            nextParts.push(<strong key={`bold-${i}`}>{s.slice(1, -1)}</strong>);
+            nextParts.push(<strong key={`bold-${i}`} className="font-bold">{s.slice(1, -1)}</strong>);
           } else if (s) {
             nextParts.push(s);
           }
@@ -64,7 +64,7 @@ export function FormattedText({ text, query = "" }: FormattedTextProps) {
         const sub = p.split(/(_[^_]+_)/g);
         sub.forEach((s, i) => {
           if (s.startsWith('_') && s.endsWith('_')) {
-            nextParts.push(<em key={`italic-${i}`}>{s.slice(1, -1)}</em>);
+            nextParts.push(<em key={`italic-${i}`} className="italic">{s.slice(1, -1)}</em>);
           } else if (s) {
             nextParts.push(s);
           }
@@ -109,5 +109,9 @@ export function FormattedText({ text, query = "" }: FormattedTextProps) {
     }
   });
 
-  return <>{finalContent}</>;
+  return (
+    <span className="text-[15px] leading-relaxed tracking-tight break-words whitespace-pre-wrap font-sans px-3 py-1.5">
+      {finalContent}
+    </span>
+  );
 }
