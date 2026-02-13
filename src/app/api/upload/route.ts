@@ -1,18 +1,19 @@
 import { NextResponse } from "next/server";
 export const dynamic = 'force-dynamic';
-export const api = {
-  bodyParser: false,
-};
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { v2 as cloudinary } from "cloudinary";
 import { getUserIdFromRequest } from "@/lib/auth";
+
+// Cloudinary Configuration
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function POST(req: Request) {
   try {
-    console.log("Upload request received");
     const userId = getUserIdFromRequest(req);
     if (!userId) {
-      console.log("Upload failed: Unauthorized");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -20,41 +21,32 @@ export async function POST(req: Request) {
     const file = formData.get("file") as File;
 
     if (!file) {
-      console.log("Upload failed: No file in form data");
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
-
-    console.log(`Uploading file: ${file.name}, size: ${file.size}, type: ${file.type}`);
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Create unique filename
-    const ext = path.extname(file.name) || (file.type.startsWith('image/') ? '.jpg' : '.mp4');
-    const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}${ext}`;
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    
-    // Ensure upload directory exists
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch (e) {
-      // Directory might already exist
-    }
+    // Convert buffer to base64 for Cloudinary
+    const fileBase64 = `data:${file.type};base64,${buffer.toString("base64")}`;
 
-    const filePath = path.join(uploadDir, filename);
-    await writeFile(filePath, buffer);
-
-    const fileUrl = `/uploads/${filename}`;
-    console.log(`File uploaded successfully: ${fileUrl}`);
+    // Upload to Cloudinary
+    const uploadResponse = await cloudinary.uploader.upload(fileBase64, {
+      folder: "chat_app_uploads",
+      resource_type: "auto", // Automatically detect if it's image, video, or raw file
+    });
 
     return NextResponse.json({ 
-      url: fileUrl,
+      url: uploadResponse.secure_url,
       fileName: file.name,
       fileSize: file.size,
       fileType: file.type
     });
   } catch (error) {
-    console.error("Upload error details:", error);
-    return NextResponse.json({ error: "Internal Server Error", details: error instanceof Error ? error.message : String(error) }, { status: 500 });
+    console.error("Cloudinary Upload Error:", error);
+    return NextResponse.json({ 
+      error: "Internal Server Error", 
+      details: error instanceof Error ? error.message : String(error) 
+    }, { status: 500 });
   }
 }
