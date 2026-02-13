@@ -31,7 +31,11 @@ export async function POST(req: Request) {
     });
 
     // Create JWT token using helper
-    const token = await signToken({ id: user._id, email: user.email });
+    const token = await signToken({ 
+      id: user._id.toString(), 
+      email: user.email,
+      name: user.name 
+    });
 
     return NextResponse.json({
       user: {
