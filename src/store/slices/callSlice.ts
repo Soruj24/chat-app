@@ -37,7 +37,13 @@ const callSlice = createSlice({
       state.callStatus = 'calling';
       state.remoteUser = action.payload.user;
       state.isMicMuted = false;
-      state.isCameraOff = action.payload.type === 'audio';
+      state.isCameraOff = false; // Initially assume camera is available for video call
+    },
+    updateCallType: (state, action: PayloadAction<CallType>) => {
+      state.callType = action.payload;
+      if (action.payload === 'audio') {
+        state.isCameraOff = true;
+      }
     },
     receiveCall: (state, action: PayloadAction<{ user: { id: string; name: string; avatar: string }, type: CallType }>) => {
       state.isCallModalOpen = true;
@@ -69,6 +75,7 @@ export const {
   initiateCall, 
   receiveCall, 
   acceptCall, 
+  updateCallType,
   endCall, 
   toggleMic, 
   toggleCamera 

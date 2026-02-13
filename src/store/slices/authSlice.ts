@@ -58,7 +58,18 @@ const authSlice = createSlice({
     },
     updateUser: (state, action: PayloadAction<Partial<AuthState["user"]>>) => {
       if (state.user) {
-        state.user = { ...state.user, ...action.payload };
+        const payload = action.payload;
+        const updatedUser = { ...state.user, ...payload };
+        
+        // Deep merge settings to avoid overwriting the whole object
+        if (payload && typeof payload === 'object' && 'settings' in payload && payload.settings) {
+          updatedUser.settings = {
+            ...state.user.settings,
+            ...payload.settings
+          } as any;
+        }
+        
+        state.user = updatedUser;
       }
     },
   },

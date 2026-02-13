@@ -98,6 +98,7 @@ export async function PATCH(
       bio: user.bio,
       lastSeen: user.lastSeen,
       status: user.status,
+      settings: user.settings,
     });
   } catch (error: unknown) {
     return NextResponse.json(

@@ -18,12 +18,15 @@ export interface User {
 export interface UserSettings {
   theme: "light" | "dark" | "system";
   fontSize: "small" | "medium" | "large";
+  accentColor: string;
+  bubbleStyle: "modern" | "classic" | "rounded";
   showNotifications: boolean;
   messagePreview: boolean;
   soundEffects: boolean;
   readReceipts: boolean;
-  lastSeen: boolean;
+  lastSeenVisibility: "everyone" | "contacts" | "nobody";
   twoFactorAuth: boolean;
+  notificationSound: string;
 }
 
 export type MessageType = "text" | "image" | "video" | "file" | "voice" | "location" | "contact";

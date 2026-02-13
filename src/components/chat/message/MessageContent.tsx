@@ -7,6 +7,7 @@ import { VoiceMessage } from "./VoiceMessage";
 import { FileIcon, MapPin, User } from "lucide-react";
 import React from "react";
 import { FormattedText } from "./FormattedText";
+import { cn } from "@/lib/utils";
 
 interface MessageContentProps {
   message: Message;
@@ -14,16 +15,34 @@ interface MessageContentProps {
   highlight?: string;
   onImageClick?: (url: string) => void;
   themeColor?: string;
+  fontSize?: 'small' | 'medium' | 'large';
+  bubbleStyle?: 'modern' | 'classic' | 'rounded';
 }
 
-export function MessageContent({ message, isMe, highlight, onImageClick, themeColor }: MessageContentProps) {
+export function MessageContent({
+  message,
+  isMe,
+  highlight,
+  onImageClick,
+  themeColor,
+  fontSize = 'medium',
+  bubbleStyle,
+}: MessageContentProps) {
+  const fontSizeClass = {
+    small: "text-[12px]",
+    medium: "text-[14px]",
+    large: "text-[16px]",
+  }[fontSize];
+
   return (
     <>
       {/* Media Content */}
       {message.type === "image" && message.mediaUrl && (
         <ImageMessage 
-          url={message.mediaUrl} 
-          onClick={() => onImageClick?.(message.mediaUrl!)} 
+          message={message}
+          isMe={isMe}
+          onImageClick={onImageClick} 
+          bubbleStyle={bubbleStyle}
         />
       )}
 
@@ -34,21 +53,31 @@ export function MessageContent({ message, isMe, highlight, onImageClick, themeCo
       {message.type === "file" && (
         <a 
           href={message.mediaUrl} 
-          download={message.fileName}
+          download={message.fileName || "file"}
           target="_blank"
           rel="noopener noreferrer"
-          className="p-3 flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer group"
+          className="p-3 flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer group max-w-[300px]"
         >
-          <div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg group-hover:bg-blue-500 group-hover:text-white transition-colors">
-            <FileIcon className="w-8 h-8" />
+          <div className="p-2.5 bg-blue-500/10 text-blue-500 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm">
+            <FileIcon className="w-7 h-7" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate group-hover:text-blue-500 transition-colors">
-              {message.fileName || "Unnamed File"}
+            <p className={cn("font-semibold truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors", fontSizeClass)}>
+              {message.fileName || "File"}
             </p>
-            <p className="text-[10px] opacity-70 uppercase">
-              {message.fileSize || "Unknown Size"}
-            </p>
+            <div className="flex items-center gap-2 mt-0.5">
+              {message.fileSize && message.fileSize !== "Size Unknown" && (
+                <>
+                  <span className="text-[10px] font-medium opacity-60 uppercase tracking-wider">
+                    {message.fileSize}
+                  </span>
+                  <span className="text-[10px] opacity-40">•</span>
+                </>
+              )}
+              <span className="text-[10px] font-medium text-blue-500 dark:text-blue-400 opacity-80 group-hover:opacity-100">
+                Download
+              </span>
+            </div>
           </div>
         </a>
       )}
@@ -87,7 +116,7 @@ export function MessageContent({ message, isMe, highlight, onImageClick, themeCo
               </div>
               <div className="flex-1 min-w-0">
                 <span 
-                  className="text-sm font-medium text-blue-500 hover:underline block truncate"
+                  className={cn("font-medium text-blue-500 hover:underline block truncate", fontSizeClass)}
                   style={!isMe && themeColor ? { color: themeColor } : {}}
                 >
                   {message.location.address || "View Location"}
@@ -110,7 +139,7 @@ export function MessageContent({ message, isMe, highlight, onImageClick, themeCo
               <User className="w-6 h-6 text-orange-500" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold truncate">{message.contact.name}</p>
+              <p className={cn("font-bold truncate", fontSizeClass)}>{message.contact.name}</p>
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{message.contact.phoneNumber}</p>
             </div>
           </div>
@@ -135,7 +164,7 @@ export function MessageContent({ message, isMe, highlight, onImageClick, themeCo
 
       {/* Text Content */}
       {message.text && (
-        <div className="p-3 pb-1">
+        <div className={cn("px-4 py-2.5 break-words leading-relaxed", fontSizeClass)}>
           <FormattedText text={message.text} query={highlight} />
         </div>
       )}

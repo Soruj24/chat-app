@@ -366,6 +366,9 @@ export default function ChatPage() {
         messagesEndRef={messagesEndRef}
         isTyping={isTyping}
         typingUser={typingUser}
+        fontSize={user?.settings?.fontSize}
+        bubbleStyle={user?.settings?.bubbleStyle}
+        accentColor={user?.settings?.accentColor}
       />
 
       <ScrollToBottomButton

@@ -17,6 +17,12 @@ export interface IUser extends Document {
     soundEffects: boolean;
     theme: 'light' | 'dark' | 'system';
     fontSize: 'small' | 'medium' | 'large';
+    accentColor: string;
+    bubbleStyle: 'modern' | 'classic' | 'rounded';
+    readReceipts: boolean;
+    lastSeenVisibility: 'everyone' | 'contacts' | 'nobody';
+    twoFactorAuth: boolean;
+    notificationSound: string;
   };
 }
 
@@ -37,6 +43,12 @@ const UserSchema: Schema = new Schema({
     soundEffects: { type: Boolean, default: true },
     theme: { type: String, enum: ['light', 'dark', 'system'], default: 'system' },
     fontSize: { type: String, enum: ['small', 'medium', 'large'], default: 'medium' },
+    accentColor: { type: String, default: '#3b82f6' },
+    bubbleStyle: { type: String, enum: ['modern', 'classic', 'rounded'], default: 'modern' },
+    readReceipts: { type: Boolean, default: true },
+    lastSeenVisibility: { type: String, enum: ['everyone', 'contacts', 'nobody'], default: 'everyone' },
+    twoFactorAuth: { type: Boolean, default: false },
+    notificationSound: { type: String, default: 'default' },
   },
 }, { timestamps: true });
 

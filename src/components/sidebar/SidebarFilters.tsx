@@ -1,6 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 interface SidebarFiltersProps {
   activeFilter: string;
@@ -8,6 +10,9 @@ interface SidebarFiltersProps {
 }
 
 export function SidebarFilters({ activeFilter, onFilterChange }: SidebarFiltersProps) {
+  const { user } = useSelector((state: RootState) => state.auth);
+  const accentColor = user?.settings?.accentColor;
+
   const filters = [
     { id: "all", label: "All" },
     { id: "unread", label: "Unread" },
@@ -24,9 +29,10 @@ export function SidebarFilters({ activeFilter, onFilterChange }: SidebarFiltersP
           className={cn(
             "px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all duration-200 whitespace-nowrap",
             activeFilter === f.id 
-              ? "bg-blue-600 text-white shadow-sm shadow-blue-500/20" 
+              ? (!accentColor && "bg-blue-600 text-white shadow-sm shadow-blue-500/20")
               : "bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
           )}
+          style={activeFilter === f.id && accentColor ? { backgroundColor: accentColor, color: '#fff', boxShadow: `${accentColor}33 0px 4px 12px` } : {}}
         >
           {f.label}
         </button>

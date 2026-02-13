@@ -3,23 +3,61 @@
 import { X, Download, Share2 } from "lucide-react";
 
 interface LightboxControlsProps {
+  url: string;
   onClose: () => void;
 }
 
-export function LightboxControls({ onClose }: LightboxControlsProps) {
+export function LightboxControls({ url, onClose }: LightboxControlsProps) {
+  const handleDownload = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `image-${Date.now()}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Shared Image',
+          url: url
+        });
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
+    } else {
+      // Fallback: Copy link
+      navigator.clipboard.writeText(url);
+      alert('Link copied to clipboard!');
+    }
+  };
+
   return (
-    <div className="absolute top-4 right-4 flex gap-4">
-      <button className="p-2 text-white hover:bg-white/10 rounded-full transition-colors">
-        <Download className="w-6 h-6" />
-      </button>
-      <button className="p-2 text-white hover:bg-white/10 rounded-full transition-colors">
-        <Share2 className="w-6 h-6" />
+    <div className="absolute top-6 right-6 flex gap-3 z-50">
+      <button 
+        onClick={handleDownload}
+        className="p-3 text-white bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full transition-all duration-200 hover:scale-110 active:scale-95"
+        title="Download"
+      >
+        <Download className="w-5 h-5" />
       </button>
       <button 
-        className="p-2 text-white hover:bg-white/10 rounded-full transition-colors"
-        onClick={onClose}
+        onClick={handleShare}
+        className="p-3 text-white bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full transition-all duration-200 hover:scale-110 active:scale-95"
+        title="Share"
       >
-        <X className="w-6 h-6" />
+        <Share2 className="w-5 h-5" />
+      </button>
+      <button 
+        onClick={(e) => { e.stopPropagation(); onClose(); }}
+        className="p-3 text-white bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full transition-all duration-200 hover:scale-110 active:scale-95"
+        title="Close"
+      >
+        <X className="w-5 h-5" />
       </button>
     </div>
   );

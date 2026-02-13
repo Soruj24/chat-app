@@ -33,6 +33,12 @@ export function useChatState(
   );
   const dispatch = useDispatch();
 
+  // Sync wallpaper and theme color when chat object changes
+  useEffect(() => {
+    setChatWallpaper(chat?.wallpaper);
+    setChatThemeColor(chat?.themeColor);
+  }, [chat?.wallpaper, chat?.themeColor]);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -578,6 +584,8 @@ export function useChatState(
         }
         const uploadData = await uploadResponse.json();
         const finalMediaUrl = uploadData.url;
+        const finalFileName = uploadData.fileName || file.name;
+        const finalFileSize = uploadData.fileSize ? formatFileSize(uploadData.fileSize) : formatFileSize(file.size);
 
         // 2. Send the message with the final URL
         const response = await fetch("/api/messages", {
@@ -597,8 +605,8 @@ export function useChatState(
                   ? "voice"
                   : "file",
             mediaUrl: finalMediaUrl,
-            fileName: file.name,
-            fileSize: formatFileSize(file.size),
+            fileName: finalFileName,
+            fileSize: finalFileSize,
             duration: isVoice ? duration : undefined,
             replyTo: replyingTo ? replyingTo.id : undefined,
           }),
@@ -616,6 +624,8 @@ export function useChatState(
                     id: savedMsg._id,
                     status: "sent",
                     mediaUrl: finalMediaUrl,
+                    fileName: finalFileName,
+                    fileSize: finalFileSize,
                   }
                 : msg,
             ),
@@ -626,6 +636,8 @@ export function useChatState(
             id: savedMsg._id,
             status: "sent",
             mediaUrl: finalMediaUrl,
+            fileName: finalFileName,
+            fileSize: finalFileSize,
           };
 
           // Emit to socket server

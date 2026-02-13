@@ -34,6 +34,9 @@ interface MessageListProps {
   messagesEndRef: RefObject<HTMLDivElement | null>;
   isTyping?: boolean;
   typingUser?: string;
+  fontSize?: 'small' | 'medium' | 'large';
+  bubbleStyle?: 'modern' | 'classic' | 'rounded';
+  accentColor?: string;
 }
 
 export function MessageList({
@@ -61,6 +64,9 @@ export function MessageList({
   messagesEndRef,
   isTyping,
   typingUser,
+  fontSize = 'medium',
+  bubbleStyle = 'modern',
+  accentColor,
 }: MessageListProps) {
   return (
     <div
@@ -163,6 +169,9 @@ export function MessageList({
                       showSenderName={chatType === "group"}
                       highlight={searchQuery}
                       onContextMenu={(e, message) => onContextMenu(e, message)}
+                      fontSize={fontSize}
+                      bubbleStyle={bubbleStyle}
+                      accentColor={accentColor}
                     />
                   </div>
                 ))}

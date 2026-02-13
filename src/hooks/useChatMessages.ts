@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { Message } from "@/lib/types";
+import { formatFileSize, getFileNameFromUrl } from "@/lib/utils";
 
 interface RawMessage {
   _id: string;
@@ -70,8 +71,8 @@ export function useChatMessages(chatId: string) {
               isMe: senderId === user?.id,
               type: msg.type,
               mediaUrl: msg.mediaUrl,
-              fileName: msg.fileName,
-              fileSize: msg.fileSize,
+              fileName: msg.fileName || (msg.type === 'file' || msg.type === 'image' ? getFileNameFromUrl(msg.mediaUrl) : undefined),
+              fileSize: msg.fileSize ? formatFileSize(msg.fileSize) : undefined,
               location: msg.location,
               contact: msg.contact,
               isForwarded: msg.isForwarded,

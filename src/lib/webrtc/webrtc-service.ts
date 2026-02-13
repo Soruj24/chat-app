@@ -18,26 +18,45 @@ export class WebRTCService {
     }
 
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        video: video,
-        audio: true,
-      });
+      // Check available devices first to avoid NotFoundError
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const hasCamera = devices.some(device => device.kind === 'videoinput');
+      const hasMic = devices.some(device => device.kind === 'audioinput');
+
+      if (!hasMic && !hasCamera) {
+        console.warn("No audio or video devices found");
+        return null;
+      }
+
+      // Adjust constraints based on available hardware
+      const constraints = {
+        video: video && hasCamera,
+        audio: hasMic
+      };
+
+      this.stream = await navigator.mediaDevices.getUserMedia(constraints);
       return this.stream;
     } catch (error: any) {
-      console.error("Error accessing media devices:", error);
+      // Only log if it's not a common "not found" error, or handle silently
+      if (error.name !== 'NotFoundError' && error.name !== 'DevicesNotFoundError') {
+        console.error("Error accessing media devices:", error);
+      }
       
-      // If video was requested but failed because device not found, try audio only
-      if (video && (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError')) {
-        console.warn("Camera not found, falling back to audio only");
+      // Fallback: If we failed to get video+audio, try just audio if it's available
+      if (video) {
         try {
-          this.stream = await navigator.mediaDevices.getUserMedia({
-            video: false,
-            audio: true,
-          });
-          return this.stream;
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const hasMic = devices.some(device => device.kind === 'audioinput');
+          
+          if (hasMic) {
+            this.stream = await navigator.mediaDevices.getUserMedia({
+              video: false,
+              audio: true,
+            });
+            return this.stream;
+          }
         } catch (audioError) {
-          console.error("Even audio access failed:", audioError);
-          return null;
+          // Silent failure for fallback
         }
       }
       

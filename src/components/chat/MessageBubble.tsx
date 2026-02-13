@@ -29,6 +29,9 @@ interface MessageBubbleProps {
   showSenderName?: boolean;
   highlight?: string;
   themeColor?: string;
+  fontSize?: 'small' | 'medium' | 'large';
+  bubbleStyle?: 'modern' | 'classic' | 'rounded';
+  accentColor?: string;
 }
 
 export function MessageBubble({ 
@@ -41,7 +44,10 @@ export function MessageBubble({
   onLike,
   themeColor,
   showSenderName,
-  highlight
+  highlight,
+  fontSize = 'medium',
+  bubbleStyle = 'modern',
+  accentColor
 }: MessageBubbleProps) {
   const isMe = message.isMe;
   const [showQuickReactions, setShowQuickReactions] = useState(false);
@@ -148,15 +154,20 @@ export function MessageBubble({
 
         <div
           className={cn(
-            "rounded-2xl shadow-sm relative transition-all duration-200",
-            isMe
-              ? !themeColor && "bg-blue-600 text-white rounded-tr-none"
-              : "bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-tl-none border-transparent dark:border-gray-700 shadow-sm"
+            "shadow-sm relative transition-all duration-200",
+            bubbleStyle === 'modern' && (isMe ? "rounded-2xl rounded-tr-none" : "rounded-2xl rounded-tl-none"),
+            bubbleStyle === 'classic' && "rounded-lg",
+            bubbleStyle === 'rounded' && "rounded-3xl",
+            message.type === 'image' 
+              ? "bg-transparent shadow-none" 
+              : isMe
+                ? !themeColor && !accentColor && "bg-blue-600 text-white"
+                : "bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-transparent dark:border-gray-700 shadow-sm"
           )}
-          style={isMe && themeColor ? { backgroundColor: themeColor, color: '#fff' } : {}}
+          style={isMe && (themeColor || accentColor) && message.type !== 'image' ? { backgroundColor: themeColor || accentColor, color: '#fff' } : {}}
         >
           {/* Tail Design */}
-          <MessageTail isMe={isMe} themeColor={themeColor} />
+          {message.type !== 'image' && bubbleStyle === 'modern' && <MessageTail isMe={isMe} themeColor={themeColor || accentColor} />}
 
           {/* Message Header (Sender name, Reply, Forwarded) */}
           <MessageHeader 
@@ -173,14 +184,18 @@ export function MessageBubble({
             highlight={highlight} 
             onImageClick={onImageClick} 
             themeColor={themeColor}
+            fontSize={fontSize}
+            bubbleStyle={bubbleStyle}
           />
 
-          {/* Message Footer (Timestamp, Status, Reactions) */}
-          <MessageFooter 
-            message={message} 
-            isMe={isMe} 
-            onReactionClick={(emoji) => onReaction?.(message, emoji)}
-          />
+          {/* Message Footer (Timestamp, Status, Reactions) - Hide for images as it's overlaid */}
+          {message.type !== 'image' && (
+            <MessageFooter 
+              message={message} 
+              isMe={isMe} 
+              onReactionClick={(emoji) => onReaction?.(message, emoji)}
+            />
+          )}
         </div>
       </div>
     </motion.div>

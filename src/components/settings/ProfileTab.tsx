@@ -5,11 +5,15 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
 import Image from "next/image";
 import { useState, useRef } from "react";
-import { setUser } from "@/store/slices/authSlice";
+import { setUser, updateUser } from "@/store/slices/authSlice";
 import { toast } from "react-hot-toast";
 import { User } from "@/lib/types";
 
-export function ProfileTab() {
+interface ProfileTabProps {
+  accentColor?: string;
+}
+
+export function ProfileTab({ accentColor = "#3b82f6" }: ProfileTabProps) {
   const { user, token } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
   const [name, setName] = useState(user?.name || "");
@@ -18,6 +22,7 @@ export function ProfileTab() {
   const [phoneNumber, setPhoneNumber] = useState(
     (user as User)?.phoneNumber || "",
   );
+  const [username, setUsername] = useState((user as User)?.username || "");
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -77,6 +82,7 @@ export function ProfileTab() {
         },
         body: JSON.stringify({
           name: name.trim(),
+          username: username.trim(),
           bio: bio.trim(),
           avatar,
           phoneNumber: phoneNumber.trim(),
@@ -89,7 +95,7 @@ export function ProfileTab() {
       }
 
       const updatedUser = await response.json();
-      dispatch(setUser(updatedUser));
+      dispatch(updateUser(updatedUser));
       toast.success("Profile updated successfully");
     } catch (error: unknown) {
       console.error("Save error:", error);
@@ -111,7 +117,8 @@ export function ProfileTab() {
       <div className="flex flex-col items-center gap-4">
         <div className="relative group">
           <div
-            className="w-24 h-24 rounded-full ring-4 ring-blue-500/10 shadow-xl overflow-hidden relative cursor-pointer"
+            className="w-24 h-24 rounded-full shadow-xl overflow-hidden relative cursor-pointer"
+            style={{ ringColor: `${accentColor}1A`, ringWidth: '4px' }}
             onClick={handleAvatarClick}
           >
             {avatar ? (
@@ -123,7 +130,10 @@ export function ProfileTab() {
                 unoptimized
               />
             ) : (
-              <div className="w-full h-full bg-blue-500 flex items-center justify-center text-white text-2xl font-bold">
+              <div 
+                className="w-full h-full flex items-center justify-center text-white text-2xl font-bold"
+                style={{ backgroundColor: accentColor }}
+              >
                 {name.charAt(0).toUpperCase()}
               </div>
             )}
@@ -149,7 +159,8 @@ export function ProfileTab() {
 
           <button
             onClick={handleAvatarClick}
-            className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all active:scale-90"
+            className="absolute bottom-0 right-0 p-2 text-white rounded-full shadow-lg transition-all active:scale-90"
+            style={{ backgroundColor: accentColor }}
           >
             <Camera className="w-4 h-4" />
           </button>
@@ -158,35 +169,45 @@ export function ProfileTab() {
           <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
             {name}
           </h3>
-          <p className="text-sm text-gray-500">{user.email}</p>
+          <p className="text-sm text-gray-500">@{username || user.email}</p>
         </div>
       </div>
 
       <div className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">
-            Display Name
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
-            className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-500/20 transition-all"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">
+              Display Name
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your name"
+              className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-xl py-3 px-4 text-sm focus:ring-2 transition-all"
+              style={{ '--tw-ring-color': `${accentColor}33` } as any}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">
+              Username
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+                @
+              </span>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="username"
+                className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-xl py-3 pl-8 pr-4 text-sm focus:ring-2 transition-all"
+                style={{ '--tw-ring-color': `${accentColor}33` } as any}
+              />
+            </div>
+          </div>
         </div>
-        <div className="space-y-2">
-          <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">
-            Phone Number
-          </label>
-          <input
-            type="text"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
-            placeholder="Your phone number"
-            className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-500/20 transition-all"
-          />
-        </div>
+
         <div className="space-y-2">
           <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">
             Bio
@@ -196,26 +217,43 @@ export function ProfileTab() {
             onChange={(e) => setBio(e.target.value)}
             placeholder="Tell us about yourself..."
             rows={3}
-            className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-500/20 transition-all resize-none"
+            className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-xl py-3 px-4 text-sm focus:ring-2 transition-all resize-none"
+            style={{ '--tw-ring-color': `${accentColor}33` } as any}
           />
         </div>
 
-        <div className="pt-4">
-          <button
-            onClick={handleSave}
-            disabled={isSaving || isUploading}
-            className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save Profile"
-            )}
-          </button>
+        <div className="space-y-2">
+          <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">
+            Phone Number
+          </label>
+          <input
+            type="tel"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            placeholder="+1 (555) 000-0000"
+            className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-xl py-3 px-4 text-sm focus:ring-2 transition-all"
+            style={{ '--tw-ring-color': `${accentColor}33` } as any}
+          />
         </div>
+
+        <button
+          onClick={handleSave}
+          disabled={isSaving}
+          className="w-full py-3.5 rounded-xl text-sm font-bold text-white shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 mt-4"
+          style={{ 
+            backgroundColor: accentColor,
+            boxShadow: `${accentColor}33 0px 8px 24px`
+          }}
+        >
+          {isSaving ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            "Save Profile Changes"
+          )}
+        </button>
       </div>
     </div>
   );

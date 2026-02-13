@@ -47,7 +47,12 @@ export async function POST(req: Request) {
     const fileUrl = `/uploads/${filename}`;
     console.log(`File uploaded successfully: ${fileUrl}`);
 
-    return NextResponse.json({ url: fileUrl });
+    return NextResponse.json({ 
+      url: fileUrl,
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type
+    });
   } catch (error) {
     console.error("Upload error details:", error);
     return NextResponse.json({ error: "Internal Server Error", details: error instanceof Error ? error.message : String(error) }, { status: 500 });

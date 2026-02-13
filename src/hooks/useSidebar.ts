@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
 import { setChats, updateChat, removeChat } from "@/store/slices/chatSlice";
-import { Chat, User, Message } from "@/lib/types";
+import { IChat as Chat, User, Message } from "@/lib/types";
 
 export function useSidebar(searchQuery: string, filter: string) {
   const { chats } = useSelector((state: RootState) => state.chat);
@@ -106,6 +106,8 @@ export function useSidebar(searchQuery: string, filter: string) {
                 isArchived?: boolean;
                 isMuted?: boolean;
                 pinnedMessageIds?: string[];
+                wallpaper?: string;
+                themeColor?: string;
               },
               index: number,
             ) => {
@@ -167,6 +169,8 @@ export function useSidebar(searchQuery: string, filter: string) {
                 isArchived: chat.isArchived || false,
                 isMuted: chat.isMuted || false,
                 pinnedMessageIds: chat.pinnedMessageIds || [],
+                wallpaper: chat.wallpaper,
+                themeColor: chat.themeColor,
               };
             },
           );

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Smile, Paperclip, Send, Mic } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "react-hot-toast";
 import { cn } from "@/lib/utils";
 import { Message } from "@/lib/types";
 import { AttachmentMenu } from "./input/AttachmentMenu";
@@ -91,6 +92,15 @@ export function MessageInput({
 
   const startRecording = async () => {
     try {
+      // Check for microphone availability first
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const hasMic = devices.some(device => device.kind === 'audioinput');
+      
+      if (!hasMic) {
+        toast.error("আপনার ডিভাইসে কোনো মাইক্রোফোন খুঁজে পাওয়া যায়নি");
+        return;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;

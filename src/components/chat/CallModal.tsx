@@ -6,7 +6,8 @@ import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { endCall, toggleMic, toggleCamera, acceptCall } from "@/store/slices/callSlice";
+import { toast } from "react-hot-toast";
+import { endCall, toggleMic, toggleCamera, acceptCall, updateCallType } from "@/store/slices/callSlice";
 import { cn } from "@/lib/utils";
 import { webrtcService } from "@/lib/webrtc/webrtc-service";
 import { socketService } from "@/lib/socket/socket-client";
@@ -57,9 +58,17 @@ export function CallModal() {
         const stream = await webrtcService.getLocalStream(callType === 'video');
         
         if (!stream) {
-          setErrorMessage("মাইক্রোফোন বা ক্যামেরা খুঁজে পাওয়া যায়নি");
-          console.error("Could not get local stream");
+          const msg = "মাইক্রোফোন খুঁজে পাওয়া যায়নি";
+          setErrorMessage(msg);
+          toast.error(msg);
           return;
+        }
+
+        // If video was requested but only audio is available
+        const hasVideo = stream.getVideoTracks().length > 0;
+        if (callType === 'video' && !hasVideo) {
+          console.log("Video requested but camera not found, falling back to audio UI");
+          dispatch(updateCallType('audio'));
         }
 
         if (localVideoRef.current) {
@@ -112,14 +121,23 @@ export function CallModal() {
     setErrorMessage(null);
     console.log("Accepting incoming call from:", remoteUser.id);
     const stream = await webrtcService.getLocalStream(callType === 'video');
-    if (stream && localVideoRef.current) {
-      localVideoRef.current.srcObject = stream;
-    }
     
     if (!stream) {
-      setErrorMessage("মাইক্রোফোন বা ক্যামেরা খুঁজে পাওয়া যায়নি");
-      console.error("Could not get local stream to answer call");
+      const msg = "মাইক্রোফোন খুঁজে পাওয়া যায়নি";
+      setErrorMessage(msg);
+      toast.error(msg);
       return;
+    }
+
+    // If video was requested but only audio is available
+    const hasVideo = stream.getVideoTracks().length > 0;
+    if (callType === 'video' && !hasVideo) {
+      console.log("Video requested but camera not found, falling back to audio UI");
+      dispatch(updateCallType('audio'));
+    }
+
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = stream;
     }
     
     const incomingSignal = (window as unknown as { incomingSignal?: RTCSessionDescriptionInit }).incomingSignal;

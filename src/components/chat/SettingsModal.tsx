@@ -1,16 +1,18 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Bell, Sun, Shield, User } from "lucide-react";
+import { X, User, Sun, Bell, Shield, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
-import { SettingsSidebar } from "../settings/SettingsSidebar";
 import { ProfileTab } from "../settings/ProfileTab";
 import { AppearanceTab } from "../settings/AppearanceTab";
 import { NotificationsTab } from "../settings/NotificationsTab";
 import { PrivacyTab } from "../settings/PrivacyTab";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
+import { updateUser } from "@/store/slices/authSlice";
 import { toast } from "react-hot-toast";
+import { cn } from "@/lib/utils";
+import { SettingsSidebar } from "../settings/SettingsSidebar";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -19,21 +21,33 @@ interface SettingsModalProps {
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const dispatch = useDispatch();
-  const { user } = useSelector((state: RootState) => state.auth);
-  const [activeTab, setActiveTab] = useState<"profile" | "appearance" | "notifications" | "privacy">("profile");
+  const { user, token } = useSelector((state: RootState) => state.auth);
+  const [activeTab, setActiveTab] = useState<
+    "profile" | "appearance" | "notifications" | "privacy"
+  >("profile");
   const [isSaving, setIsSaving] = useState(false);
 
-  // Notifications State
+  // Notification State
   const [notifications, setNotifications] = useState({
     showNotifications: true,
     messagePreview: true,
-    soundEffects: true
+    soundEffects: true,
+    notificationSound: "default",
   });
 
   // Appearance State
   const [appearance, setAppearance] = useState({
-    theme: 'system' as 'light' | 'dark' | 'system',
-    fontSize: 'medium' as 'small' | 'medium' | 'large'
+    theme: "system" as "light" | "dark" | "system",
+    fontSize: "medium" as "small" | "medium" | "large",
+    accentColor: "#3b82f6",
+    bubbleStyle: "modern" as "modern" | "classic" | "rounded",
+  });
+
+  // Privacy State
+  const [privacy, setPrivacy] = useState({
+    readReceipts: true,
+    lastSeenVisibility: "everyone" as "everyone" | "contacts" | "nobody",
+    twoFactorAuth: false,
   });
 
   useEffect(() => {
@@ -41,11 +55,19 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       setNotifications({
         showNotifications: user.settings.showNotifications,
         messagePreview: user.settings.messagePreview,
-        soundEffects: user.settings.soundEffects
+        soundEffects: user.settings.soundEffects,
+        notificationSound: user.settings.notificationSound || "default",
       });
       setAppearance({
         theme: user.settings.theme,
-        fontSize: user.settings.fontSize
+        fontSize: user.settings.fontSize,
+        accentColor: user.settings.accentColor || "#3b82f6",
+        bubbleStyle: user.settings.bubbleStyle || "modern",
+      });
+      setPrivacy({
+        readReceipts: user.settings.readReceipts ?? true,
+        lastSeenVisibility: user.settings.lastSeenVisibility || "everyone",
+        twoFactorAuth: user.settings.twoFactorAuth ?? false,
       });
     }
   }, [user]);
@@ -55,25 +77,34 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     setIsSaving(true);
     try {
       const response = await fetch(`/api/users/${user.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           settings: {
             ...notifications,
-            ...appearance
-          }
-        })
+            ...appearance,
+            ...privacy,
+          },
+        }),
       });
 
-      if (!response.ok) throw new Error('Failed to save settings');
-      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to save settings");
+      }
+
       const updatedUser = await response.json();
-      dispatch({ type: 'auth/setUser', payload: updatedUser });
-      toast.success('Settings saved successfully');
+      dispatch(updateUser(updatedUser));
+      toast.success("Settings saved successfully");
       onClose();
     } catch (error) {
-      console.error('Error saving settings:', error);
-      toast.error('Failed to save settings');
+      console.error("Error saving settings:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save settings",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -97,7 +128,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             onClick={onClose}
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
           />
-          
+
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -106,7 +137,11 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           >
             <SettingsSidebar
               activeTab={activeTab}
-              onTabChange={(tab) => setActiveTab(tab as "profile" | "appearance" | "notifications" | "privacy")}
+              onTabChange={(tab) =>
+                setActiveTab(
+                  tab as "profile" | "appearance" | "notifications" | "privacy",
+                )
+              }
               onClose={onClose}
               menuItems={menuItems}
             />
@@ -114,7 +149,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             {/* Content Area */}
             <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-gray-900">
               <div className="hidden md:flex items-center justify-end p-4 border-b border-gray-50 dark:border-gray-800">
-                <button 
+                <button
                   onClick={onClose}
                   className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-400"
                 >
@@ -123,42 +158,74 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               </div>
 
               <div className="flex-1 overflow-y-auto p-6 md:p-8">
-                {activeTab === "profile" && <ProfileTab />}
+                {activeTab === "profile" && (
+                  <ProfileTab 
+                    accentColor={appearance.accentColor} 
+                  />
+                )}
                 {activeTab === "appearance" && (
-                  <AppearanceTab 
+                  <AppearanceTab
                     settings={appearance}
-                    onChange={(newAppearance) => setAppearance(prev => ({ ...prev, ...newAppearance }))}
+                    onChange={(newAppearance) =>
+                      setAppearance((prev) => ({ ...prev, ...newAppearance }))
+                    }
                   />
                 )}
                 {activeTab === "notifications" && (
-                  <NotificationsTab 
-                    settings={notifications}
-                    onChange={(newNotifications) => setNotifications(prev => ({ ...prev, ...newNotifications }))}
+                  <NotificationsTab
+                    settings={{ ...notifications, accentColor: appearance.accentColor }}
+                    onChange={(newNotifications) =>
+                      setNotifications((prev) => ({
+                        ...prev,
+                        ...newNotifications,
+                      }))
+                    }
                   />
                 )}
-                {activeTab === "privacy" && <PrivacyTab />}
+                {activeTab === "privacy" && (
+                  <PrivacyTab
+                    settings={privacy}
+                    onChange={(newPrivacy) =>
+                      setPrivacy((prev) => ({ ...prev, ...newPrivacy }))
+                    }
+                  />
+                )}
               </div>
 
               {/* Footer */}
               <div className="p-6 bg-white dark:bg-gray-900 border-t border-gray-50 dark:border-gray-800 flex justify-end gap-3 mt-auto">
-                <button 
+                <button
                   onClick={onClose}
                   disabled={isSaving}
                   className="px-6 py-2.5 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all disabled:opacity-50"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="px-6 py-2.5 rounded-xl text-sm font-bold bg-blue-600 text-white shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                  className={cn(
+                    "px-6 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2",
+                    !appearance.accentColor &&
+                      "bg-blue-600 shadow-blue-500/20 hover:bg-blue-700",
+                  )}
+                  style={
+                    appearance.accentColor
+                      ? {
+                          backgroundColor: appearance.accentColor,
+                          boxShadow: `${appearance.accentColor}33 0px 8px 24px`,
+                        }
+                      : {}
+                  }
                 >
                   {isSaving ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       Saving...
                     </>
-                  ) : 'Save Changes'}
+                  ) : (
+                    "Save Changes"
+                  )}
                 </button>
               </div>
             </div>
