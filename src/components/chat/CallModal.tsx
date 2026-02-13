@@ -58,7 +58,7 @@ export function CallModal() {
         const stream = await webrtcService.getLocalStream(callType === 'video');
         
         if (!stream) {
-          const msg = "মাইক্রোফোন খুঁজে পাওয়া যায়নি";
+          const msg = "Microphone not found";
           setErrorMessage(msg);
           toast.error(msg);
           return;
@@ -123,7 +123,7 @@ export function CallModal() {
     const stream = await webrtcService.getLocalStream(callType === 'video');
     
     if (!stream) {
-      const msg = "মাইক্রোফোন খুঁজে পাওয়া যায়নি";
+      const msg = "Microphone not found";
       setErrorMessage(msg);
       toast.error(msg);
       return;

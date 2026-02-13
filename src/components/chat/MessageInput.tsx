@@ -97,7 +97,7 @@ export function MessageInput({
       const hasMic = devices.some(device => device.kind === 'audioinput');
       
       if (!hasMic) {
-        toast.error("আপনার ডিভাইসে কোনো মাইক্রোফোন খুঁজে পাওয়া যায়নি");
+        toast.error("No microphone found on your device");
         return;
       }
 
