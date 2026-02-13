@@ -100,7 +100,7 @@ export function ProfileTab({ accentColor = "#3b82f6" }: ProfileTabProps) {
     } catch (error: unknown) {
       console.error("Save error:", error);
       toast.error(
-        error instanceof Error ? error.message : "Failed to save changes"
+        error instanceof Error ? error.message : "Failed to save changes",
       );
     } finally {
       setIsSaving(false);
@@ -118,7 +118,7 @@ export function ProfileTab({ accentColor = "#3b82f6" }: ProfileTabProps) {
         <div className="relative group">
           <div
             className="w-24 h-24 rounded-full shadow-xl overflow-hidden relative cursor-pointer"
-            style={{ ringColor: `${accentColor}1A`, ringWidth: '4px' }}
+            style={{ boxShadow: `0 0 0 4px ${accentColor}1A` }}
             onClick={handleAvatarClick}
           >
             {avatar ? (
@@ -130,7 +130,7 @@ export function ProfileTab({ accentColor = "#3b82f6" }: ProfileTabProps) {
                 unoptimized
               />
             ) : (
-              <div 
+              <div
                 className="w-full h-full flex items-center justify-center text-white text-2xl font-bold"
                 style={{ backgroundColor: accentColor }}
               >
@@ -185,7 +185,7 @@ export function ProfileTab({ accentColor = "#3b82f6" }: ProfileTabProps) {
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
               className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-xl py-3 px-4 text-sm focus:ring-2 transition-all"
-              style={{ '--tw-ring-color': `${accentColor}33` } as any}
+              style={{ "--tw-ring-color": `${accentColor}33` } as React.CSSProperties}
             />
           </div>
           <div className="space-y-2">
@@ -202,7 +202,7 @@ export function ProfileTab({ accentColor = "#3b82f6" }: ProfileTabProps) {
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="username"
                 className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-xl py-3 pl-8 pr-4 text-sm focus:ring-2 transition-all"
-                style={{ '--tw-ring-color': `${accentColor}33` } as any}
+                style={{ "--tw-ring-color": `${accentColor}33` } as React.CSSProperties}
               />
             </div>
           </div>
@@ -218,7 +218,7 @@ export function ProfileTab({ accentColor = "#3b82f6" }: ProfileTabProps) {
             placeholder="Tell us about yourself..."
             rows={3}
             className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-xl py-3 px-4 text-sm focus:ring-2 transition-all resize-none"
-            style={{ '--tw-ring-color': `${accentColor}33` } as any}
+            style={{ "--tw-ring-color": `${accentColor}33` } as React.CSSProperties}
           />
         </div>
 
@@ -232,7 +232,7 @@ export function ProfileTab({ accentColor = "#3b82f6" }: ProfileTabProps) {
             onChange={(e) => setPhoneNumber(e.target.value)}
             placeholder="+1 (555) 000-0000"
             className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-xl py-3 px-4 text-sm focus:ring-2 transition-all"
-            style={{ '--tw-ring-color': `${accentColor}33` } as any}
+            style={{ "--tw-ring-color": `${accentColor}33` } as React.CSSProperties}
           />
         </div>
 
@@ -240,9 +240,9 @@ export function ProfileTab({ accentColor = "#3b82f6" }: ProfileTabProps) {
           onClick={handleSave}
           disabled={isSaving}
           className="w-full py-3.5 rounded-xl text-sm font-bold text-white shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 mt-4"
-          style={{ 
+          style={{
             backgroundColor: accentColor,
-            boxShadow: `${accentColor}33 0px 8px 24px`
+            boxShadow: `${accentColor}33 0px 8px 24px`,
           }}
         >
           {isSaving ? (
