@@ -31,10 +31,12 @@ export async function POST(req: Request) {
     const fileBase64 = `data:${file.type};base64,${buffer.toString("base64")}`;
 
     // Upload to Cloudinary
+    console.log("Starting Cloudinary upload...");
     const uploadResponse = await cloudinary.uploader.upload(fileBase64, {
       folder: "chat_app_uploads",
-      resource_type: "auto", // Automatically detect if it's image, video, or raw file
+      resource_type: "auto", 
     });
+    console.log("Cloudinary upload successful:", uploadResponse.secure_url);
 
     return NextResponse.json({ 
       url: uploadResponse.secure_url,
