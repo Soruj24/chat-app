@@ -54,7 +54,6 @@ io.on("connection", (socket) => {
 
     // 2. Also send to the specific receiver room (for sidebar updates/notifications)
     if (receiverId) {
-      console.log(`Sending notification to user ${receiverId}`);
       io.to(receiverId).emit("new_message_notification", { chatId, message });
     } else {
       // If it's a group chat, send to all participants except sender
