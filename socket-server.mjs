@@ -4,9 +4,7 @@ import http from "http";
 const server = http.createServer();
 const io = new Server(server, {
   cors: {
-    origin: process.env.ALLOWED_ORIGINS 
-      ? process.env.ALLOWED_ORIGINS.split(",") 
-      : ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3002", "http://127.0.0.1:3002", "https://chat-app-nine-neon-38.vercel.app"],
+    origin: "*", // Allow all origins for easier debugging during deployment
     methods: ["GET", "POST"],
     credentials: true
   },
