@@ -5,8 +5,10 @@ import { Users, UserPlus } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { User } from "@/lib/types";
+
 interface MemberListProps {
-  members: any[];
+  members: User[];
 }
 
 export function MemberList({ members }: MemberListProps) {

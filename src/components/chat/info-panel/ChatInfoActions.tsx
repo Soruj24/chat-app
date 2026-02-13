@@ -1,8 +1,7 @@
 "use client";
 
 import { Bell, Palette, Star, Shield, LogOut, ChevronRight } from "lucide-react";
-import { Message } from "@/lib/types";
-
+ 
 interface ChatInfoActionsProps {
   isGroup: boolean;
   starredMessagesCount: number;

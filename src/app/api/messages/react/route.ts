@@ -1,5 +1,5 @@
 import dbConnect from "@/lib/db";
-import Message from "@/models/Message";
+import Message, { IReaction } from "@/models/Message";
 import { getUserIdFromRequest } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
 
     // Check if user already reacted with this emoji
     const existingReactionIndex = message.reactions.findIndex(
-      (r: any) => r.userId.toString() === userId && r.emoji === emoji
+      (r: IReaction) => r.userId.toString() === userId && r.emoji === emoji
     );
 
     if (existingReactionIndex > -1) {
@@ -47,8 +47,14 @@ export async function POST(req: Request) {
     await message.save();
 
     return NextResponse.json(message);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("API Message React Error:", error);
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return NextResponse.json(
+      {
+        message:
+          error instanceof Error ? error.message : "Internal server error",
+      },
+      { status: 500 },
+    );
   }
 }

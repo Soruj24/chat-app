@@ -30,7 +30,10 @@ export function useChatListItemActions(
     setShowContextMenu(true);
   };
 
-  const handleDragEnd = (_: any, info: PanInfo) => {
+  const handleDragEnd = (
+    _: MouseEvent | TouchEvent | PointerEvent,
+    info: PanInfo,
+  ) => {
     if (info.offset.x > 100) {
       onPin?.(chatId);
     } else if (info.offset.x < -100) {

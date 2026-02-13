@@ -3,8 +3,10 @@
 import { motion } from "framer-motion";
 import { Info, Phone, Mail } from "lucide-react";
 
+import { User } from "@/lib/types";
+
 interface ProfileInfoProps {
-  user: any;
+  user: User;
 }
 
 export function ProfileInfo({ user }: ProfileInfoProps) {

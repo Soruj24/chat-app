@@ -1,10 +1,11 @@
 "use client";
 
+import { Message } from "@/lib/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { Pin, X } from "lucide-react";
 
 interface PinnedMessagesBarProps {
-  pinnedMessages: any[];
+  pinnedMessages: Message[];
   currentPinnedIndex: number;
   onNavigate: () => void;
   onClear: () => void;

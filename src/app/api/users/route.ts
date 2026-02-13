@@ -16,12 +16,11 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("q");
 
-    let filter = { _id: { $ne: currentUserId } };
-    
+    let filter: Record<string, unknown> = { _id: { $ne: currentUserId } };
+
     if (query) {
       filter = {
         ...filter,
-        // @ts-ignore
         $or: [
           { name: { $regex: query, $options: "i" } },
           { username: { $regex: query, $options: "i" } },
@@ -35,7 +34,10 @@ export async function GET(req: Request) {
       .limit(20);
 
     return NextResponse.json(users);
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json({ message: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ message: "Unknown error" }, { status: 500 });
   }
 }

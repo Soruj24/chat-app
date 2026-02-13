@@ -12,16 +12,16 @@ export class WebRTCService {
       // If existing stream doesn't match the requested video state, stop it and get a new one
       const hasVideo = this.stream.getVideoTracks().length > 0;
       if (hasVideo === video) return this.stream;
-      
-      this.stream.getTracks().forEach(track => track.stop());
+
+      this.stream.getTracks().forEach((track) => track.stop());
       this.stream = null;
     }
 
     try {
       // Check available devices first to avoid NotFoundError
       const devices = await navigator.mediaDevices.enumerateDevices();
-      const hasCamera = devices.some(device => device.kind === 'videoinput');
-      const hasMic = devices.some(device => device.kind === 'audioinput');
+      const hasCamera = devices.some((device) => device.kind === "videoinput");
+      const hasMic = devices.some((device) => device.kind === "audioinput");
 
       if (!hasMic && !hasCamera) {
         console.warn("No audio or video devices found");
@@ -31,23 +31,27 @@ export class WebRTCService {
       // Adjust constraints based on available hardware
       const constraints = {
         video: video && hasCamera,
-        audio: hasMic
+        audio: hasMic,
       };
 
       this.stream = await navigator.mediaDevices.getUserMedia(constraints);
       return this.stream;
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Only log if it's not a common "not found" error, or handle silently
-      if (error.name !== 'NotFoundError' && error.name !== 'DevicesNotFoundError') {
+      if (
+        error instanceof Error &&
+        error.name !== "NotFoundError" &&
+        error.name !== "DevicesNotFoundError"
+      ) {
         console.error("Error accessing media devices:", error);
       }
-      
+
       // Fallback: If we failed to get video+audio, try just audio if it's available
       if (video) {
         try {
           const devices = await navigator.mediaDevices.enumerateDevices();
-          const hasMic = devices.some(device => device.kind === 'audioinput');
-          
+          const hasMic = devices.some((device) => device.kind === "audioinput");
+
           if (hasMic) {
             this.stream = await navigator.mediaDevices.getUserMedia({
               video: false,
@@ -59,7 +63,7 @@ export class WebRTCService {
           // Silent failure for fallback
         }
       }
-      
+
       return null;
     }
   }
@@ -77,14 +81,18 @@ export class WebRTCService {
         userToCall: userIdToCall,
         signalData: data,
         from: currentUserId,
-        type: stream.getVideoTracks().length > 0 ? 'video' : 'audio'
+        type: stream.getVideoTracks().length > 0 ? "video" : "audio",
       });
     });
 
     return this.peer;
   }
 
-  answerPeer(incomingSignal: any, callerId: string, stream: MediaStream) {
+  answerPeer(
+    incomingSignal: Peer.SignalData,
+    callerId: string,
+    stream: MediaStream,
+  ) {
     this.peer = new Peer({
       initiator: false,
       trickle: false,
@@ -103,7 +111,7 @@ export class WebRTCService {
     return this.peer;
   }
 
-  signalPeer(signal: any) {
+  signalPeer(signal: Peer.SignalData) {
     if (this.peer) {
       console.log("Signaling existing peer with type:", signal.type);
       this.peer.signal(signal);
@@ -118,7 +126,7 @@ export class WebRTCService {
       this.peer = null;
     }
     if (this.stream) {
-      this.stream.getTracks().forEach(track => track.stop());
+      this.stream.getTracks().forEach((track) => track.stop());
       this.stream = null;
     }
   }

@@ -4,8 +4,10 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { Phone, Video, Search } from "lucide-react";
 
+import { User } from "@/lib/types";
+
 interface ProfileCardProps {
-  user: any;
+  user: User;
 }
 
 export function ProfileCard({ user }: ProfileCardProps) {

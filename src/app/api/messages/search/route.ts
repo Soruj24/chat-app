@@ -45,15 +45,21 @@ export async function GET(req: Request) {
         id: msg._id,
         text: msg.text,
         timestamp: new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        senderName: (msg.sender as any)?.name || "User",
-        senderAvatar: (msg.sender as any)?.avatar,
-        senderId: (msg.sender as any)?._id || msg.sender
+        senderName: (msg.sender as mongoose.Document & { name?: string })?.name || "User",
+        senderAvatar: (msg.sender as mongoose.Document & { avatar?: string })?.avatar,
+        senderId: (msg.sender as mongoose.Document & { _id?: mongoose.Types.ObjectId })?._id || msg.sender
       }
     }));
 
     return NextResponse.json(results);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Global Search Error:", error);
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return NextResponse.json(
+      {
+        message:
+          error instanceof Error ? error.message : "Internal server error",
+      },
+      { status: 500 },
+    );
   }
 }

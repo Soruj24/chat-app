@@ -16,7 +16,7 @@ export function SearchEmptyState({ onClear }: SearchEmptyStateProps) {
   );
 }
 
-function SearchIcon(props: any) {
+function SearchIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}

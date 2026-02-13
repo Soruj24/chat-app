@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { User } from "@/lib/types";
+import { User, UserSettings } from "@/lib/types";
 
 interface AuthState {
   user: User | null;
@@ -60,15 +60,20 @@ const authSlice = createSlice({
       if (state.user) {
         const payload = action.payload;
         const updatedUser = { ...state.user, ...payload };
-        
+
         // Deep merge settings to avoid overwriting the whole object
-        if (payload && typeof payload === 'object' && 'settings' in payload && payload.settings) {
+        if (
+          payload &&
+          typeof payload === "object" &&
+          "settings" in payload &&
+          payload.settings
+        ) {
           updatedUser.settings = {
             ...state.user.settings,
-            ...payload.settings
-          } as any;
+            ...payload.settings,
+          } as UserSettings;
         }
-        
+
         state.user = updatedUser;
       }
     },

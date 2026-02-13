@@ -20,7 +20,7 @@ export interface AuthUser {
   };
 }
 
-export async function signToken(payload: any) {
+export async function signToken(payload: AuthUser) {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 }
 

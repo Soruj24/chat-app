@@ -52,7 +52,7 @@ export function AppearanceTab({ settings, onChange }: AppearanceTabProps) {
             return (
               <button
                 key={theme.id}
-                onClick={() => onChange({ theme: theme.id as any })}
+                onClick={() => onChange({ theme: theme.id as 'light' | 'dark' | 'system' })}
                 className={cn(
                   "flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all",
                   isActive 
@@ -102,7 +102,7 @@ export function AppearanceTab({ settings, onChange }: AppearanceTabProps) {
             return (
               <button
                 key={style.id}
-                onClick={() => onChange({ bubbleStyle: style.id as any })}
+                onClick={() => onChange({ bubbleStyle: style.id as 'modern' | 'classic' | 'rounded' })}
                 className={cn(
                   "flex flex-col gap-3 p-4 rounded-2xl border-2 transition-all",
                   isActive 

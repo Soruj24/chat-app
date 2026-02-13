@@ -4,8 +4,10 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { Image as ImageIcon } from "lucide-react";
 
+import { IChat } from "@/lib/types";
+
 interface GroupCardProps {
-  chat: any;
+  chat: IChat;
 }
 
 export function GroupCard({ chat }: GroupCardProps) {
@@ -39,7 +41,7 @@ export function GroupCard({ chat }: GroupCardProps) {
       </div>
 
       <div className="p-4 bg-gray-50 dark:bg-gray-800/50 text-center italic text-sm text-gray-600 dark:text-gray-400 border-t border-gray-100 dark:border-gray-800">
-        "{chat.description || "No description provided."}"
+        &ldquo;{chat.description || "No description provided."}&rdquo;
       </div>
     </motion.div>
   );

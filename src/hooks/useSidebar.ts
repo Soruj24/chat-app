@@ -235,39 +235,58 @@ export function useSidebar(searchQuery: string, filter: string) {
         if (messagesResponse.ok) {
           const data = await messagesResponse.json();
           setGlobalMessages(
-            data.map((item: any, index: number) => ({
-              chatId: item.chatId || item.chat?._id || item.chat?.id || "",
-              message: {
-                ...(item.message || item),
-                id: (
-                  item.message?._id ||
-                  item.message?.id ||
-                  item._id ||
-                  item.id ||
-                  `msg-${index}`
-                ).toString(),
-                senderId: (
-                  item.message?.sender?._id ||
-                  item.message?.sender?.id ||
-                  item.sender?._id ||
-                  item.sender?.id ||
-                  item.sender ||
-                  ""
-                ).toString(),
-                timestamp:
-                  item.message?.timestamp ||
-                  item.timestamp ||
-                  new Date().toISOString(),
-                status: item.message?.status || item.status || "sent",
-                type: item.message?.type || item.type || "text",
-                isMe:
-                  (item.message?.sender?._id ||
-                    item.message?.sender?.id ||
-                    item.sender?._id ||
-                    item.sender?.id ||
-                    item.sender) === user?.id,
-              },
-            })),
+            data.map(
+              (
+                item: {
+                  chatId?: string;
+                  chat?: { _id?: string; id?: string };
+                  message?: Message;
+                  _id?: string;
+                  id?: string;
+                  sender?: string | { _id?: string; id?: string };
+                  timestamp?: string;
+                  status?: string;
+                  type?: string;
+                },
+                index: number,
+              ) => ({
+                chatId: item.chatId || item.chat?._id || item.chat?.id || "",
+                message: {
+                  ...(item.message || item),
+                  id: (
+                    item.message?._id ||
+                    item.message?.id ||
+                    item._id ||
+                    item.id ||
+                    `msg-${index}`
+                  ).toString(),
+                  senderId: (
+                    (typeof item.message?.sender === "object"
+                      ? item.message?.sender?._id || item.message?.sender?.id
+                      : null) ||
+                    (typeof item.sender === "object"
+                      ? item.sender?._id || item.sender?.id
+                      : null) ||
+                    item.sender ||
+                    ""
+                  ).toString(),
+                  timestamp:
+                    item.message?.timestamp ||
+                    item.timestamp ||
+                    new Date().toISOString(),
+                  status: item.message?.status || item.status || "sent",
+                  type: item.message?.type || item.type || "text",
+                  isMe:
+                    ((typeof item.message?.sender === "object"
+                      ? item.message?.sender?._id || item.message?.sender?.id
+                      : null) ||
+                      (typeof item.sender === "object"
+                        ? item.sender?._id || item.sender?.id
+                        : null) ||
+                      item.sender) === user?.id,
+                },
+              }),
+            ),
           );
         }
       } catch (error) {

@@ -33,6 +33,8 @@ export type MessageType = "text" | "image" | "video" | "file" | "voice" | "locat
 
 export interface Message {
   id: string;
+  _id?: string;
+  sender?: string | { _id?: string; id?: string };
   senderId: string;
   senderName?: string; // For group chats
   senderAvatar?: string; // Added for profile pictures

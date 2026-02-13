@@ -1,5 +1,10 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+export interface IReaction {
+  userId: mongoose.Types.ObjectId;
+  emoji: string;
+}
+
 export interface IMessage extends Document {
   sender: mongoose.Types.ObjectId;
   receiver?: mongoose.Types.ObjectId;
@@ -24,10 +29,7 @@ export interface IMessage extends Document {
   isForwarded?: boolean;
   status: 'sent' | 'delivered' | 'read';
   timestamp: Date;
-  reactions: Array<{
-    userId: mongoose.Types.ObjectId;
-    emoji: string;
-  }>;
+  reactions: IReaction[];
 }
 
 const MessageSchema: Schema = new Schema({

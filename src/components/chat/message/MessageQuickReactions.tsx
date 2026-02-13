@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Message } from "@/lib/types";
 import { Plus } from "lucide-react";
 import { useState } from "react";
+import { Theme } from "emoji-picker-react";
 import dynamic from "next/dynamic";
 
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false });
@@ -82,7 +83,7 @@ export function MessageQuickReactions({
                 onClose();
               }}
               autoFocusSearch={true}
-              theme={"auto" as any}
+              theme={Theme.AUTO}
               width={300}
               height={400}
               searchPlaceHolder="Search emoji..."
