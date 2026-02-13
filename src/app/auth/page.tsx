@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Lock, User, MessageCircle, ArrowRight, Loader2 } from "lucide-react";
+import { Mail, Lock, User, MessageCircle, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { loginStart, loginSuccess, loginFailure } from "@/store/slices/authSlice";
@@ -15,6 +15,7 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   
   const dispatch = useDispatch();
   const router = useRouter();
@@ -117,13 +118,24 @@ export default function AuthPage() {
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all outline-none dark:text-white font-medium"
+                className="w-full pl-12 pr-12 py-4 bg-gray-50 dark:bg-gray-800 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all outline-none dark:text-white font-medium"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
             </div>
 
             {error && (
