@@ -38,7 +38,11 @@ async function dbConnect() {
       bufferCommands: false,
     };
 
+    const connectionUri = MONGODB_URI!.split('@')[1] || 'local';
+    console.log(`Connecting to MongoDB: ${connectionUri}`);
+    
     cached!.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
+      console.log('MongoDB connected successfully');
       return mongoose;
     });
   }
