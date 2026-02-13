@@ -9,7 +9,7 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-// Upload Endpoint
+// Upload Endpoint- Uploads a file to Cloudinary
 export async function POST(req: Request) {
   try {
     const userId = getUserIdFromRequest(req);
