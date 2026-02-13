@@ -196,7 +196,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [token, pathname, router, isChecking]);
 
-  // Show loading while checking auth
+  
   if (isChecking) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-white dark:bg-gray-950">
