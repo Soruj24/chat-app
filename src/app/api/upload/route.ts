@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import { v2 as cloudinary } from "cloudinary";
 import { getUserIdFromRequest } from "@/lib/auth";
 
-// Cloudinary Configuration
+// Cloudinary Configurations
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
