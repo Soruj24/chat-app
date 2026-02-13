@@ -21,7 +21,7 @@ class SocketService {
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       timeout: 20000,
-      transports: ["websocket"], // Only use websocket to avoid CORS/XHR polling issues
+      transports: ["polling", "websocket"], // Allow polling for initial connection on Render
       forceNew: true,
     }) as SocketWithUserId;
 
