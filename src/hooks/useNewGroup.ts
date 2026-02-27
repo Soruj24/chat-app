@@ -136,7 +136,11 @@ export function useNewGroup(onClose: () => void) {
         setSelectedUsers(new Set());
         setGroupName("");
         setDescription("");
-        router.push(`/chat/${mappedChat.id}`);
+        if (mappedChat.id) {
+          router.push(`/chat/${mappedChat.id}`);
+        } else {
+          console.warn("New group created with no id", mappedChat);
+        }
       } else {
         const error = await response.json();
         console.error("Failed to create group:", error.message);

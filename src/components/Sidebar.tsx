@@ -39,6 +39,7 @@ export default function Sidebar() {
     allUsers,
     pinnedChats,
     otherChats,
+    loadingChats,
     handleTogglePin,
     handleToggleArchive,
     handleToggleMute,
@@ -94,6 +95,7 @@ export default function Sidebar() {
             otherChats={otherChats}
             allUsers={allUsers}
             activeId={activeId}
+            loading={loadingChats}
             onPin={handleTogglePin}
             onMute={handleToggleMute}
             onArchive={handleToggleArchive}

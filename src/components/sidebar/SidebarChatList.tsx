@@ -1,6 +1,7 @@
 "use client";
 
 import { ChatListItem } from "../chat/ChatListItem";
+import { ChatListSkeleton } from "./ChatListSkeleton";
 import { UserSearchResult } from "./UserSearchResult";
 import { Ghost, Users } from "lucide-react";
 
@@ -11,6 +12,7 @@ interface SidebarChatListProps {
   otherChats: IChat[];
   allUsers?: User[];
   activeId?: string | null;
+  loading?: boolean;
   onPin: (id: string) => void;
   onMute: (id: string) => void;
   onArchive: (id: string) => void;
@@ -22,6 +24,7 @@ export function SidebarChatList({
   otherChats, 
   allUsers = [],
   activeId,
+  loading = false,
   onPin,
   onMute,
   onArchive,
@@ -29,6 +32,11 @@ export function SidebarChatList({
 }: SidebarChatListProps) {
   const hasChats = pinnedChats.length > 0 || otherChats.length > 0;
   const hasUsers = allUsers.length > 0;
+
+  if (loading) {
+    // show skeleton while chats are loading
+    return <ChatListSkeleton />;
+  }
 
   if (!hasChats && !hasUsers) {
     return (

@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { MessageBubble } from "@/components/chat/MessageBubble";
 import { DateSeparator } from "@/components/chat/DateSeparator";
 import { TypingIndicator } from "@/components/chat/TypingIndicator";
+import { MessageListSkeleton } from "./MessageListSkeleton";
 import { cn } from "@/lib/utils";
 import { RefObject } from "react";
 import { Message } from "@/lib/types";
@@ -93,9 +94,8 @@ export function MessageList({
         )}
 
         {isLoading ? (
-          <div className="flex-1 flex flex-col items-center justify-center py-20 text-gray-400">
-            <Loader2 className="w-10 h-10 animate-spin mb-4 text-blue-500" />
-            <p className="text-sm animate-pulse">Loading messages...</p>
+          <div className="py-4">
+            <MessageListSkeleton groupAvatar={chatType === "group"} />
           </div>
         ) : localMessages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center py-20">

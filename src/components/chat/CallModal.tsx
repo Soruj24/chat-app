@@ -31,10 +31,16 @@ export function CallModal() {
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteAudioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
-    if (remoteStream && remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = remoteStream;
+    if (remoteStream) {
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = remoteStream;
+      }
+      if (remoteAudioRef.current) {
+        remoteAudioRef.current.srcObject = remoteStream;
+      }
     }
   }, [remoteStream, callStatus]);
 
@@ -293,6 +299,8 @@ export function CallModal() {
           )}
         </div>
       </div>
+      {/* hidden audio element for audio-call playback */}
+      <audio ref={remoteAudioRef} autoPlay className="hidden" />
     </motion.div>
   );
 }

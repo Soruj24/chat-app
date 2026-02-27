@@ -45,7 +45,10 @@ export function ChatListItem({ chat, isActive, onPin, onMute, onArchive, onDelet
           isActive && "bg-blue-50 dark:bg-blue-900/20 shadow-inner"
         )}
       >
-        <Link href={`/chat/${chat.id}`} className="absolute inset-0 z-20" />
+        {/* only render valid destination; guard against undefined/empty id */}
+        {chat.id ? (
+          <Link href={`/chat/${chat.id}`} className="absolute inset-0 z-20" />
+        ) : null}
         
         <ChatAvatar 
           avatar={chat.avatar} 

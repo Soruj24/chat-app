@@ -60,7 +60,11 @@ export function UserSearchResult({ user }: UserSearchResultProps) {
         // Add to local chats if not already there and set active
         dispatch(addChat(mappedChat));
         dispatch(setActiveChat(mappedChat.id));
-        router.push(`/chat/${mappedChat.id}`);
+        if (mappedChat.id) {
+          router.push(`/chat/${mappedChat.id}`);
+        } else {
+          console.warn("Attempted to navigate to chat with missing id", mappedChat);
+        }
       }
     } catch (error) {
       console.error("Failed to start chat:", error);

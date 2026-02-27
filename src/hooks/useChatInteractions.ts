@@ -7,6 +7,8 @@ import { socketService } from "@/lib/socket/socket-client";
 import { Message } from "@/lib/types";
 
 export function useChatInteractions(chatId?: string) {
+  // sanitize parameter; guard against literal strings produced by casts
+  const validChatId = chatId && chatId !== "undefined" && chatId !== "null" ? chatId : "";
   const { token, user } = useSelector((state: RootState) => state.auth);
   const { chats } = useSelector((state: RootState) => state.chat);
   const dispatch = useDispatch();
@@ -35,7 +37,7 @@ export function useChatInteractions(chatId?: string) {
   }, [user?.starredMessages]);
 
   const handlePinMessage = async (message: Message) => {
-    if (!token || !chatId) return;
+    if (!token || !validChatId) return;
     try {
       const response = await fetch(`/api/messages/${message.id}/pin`, {
         method: "PATCH",
@@ -43,7 +45,7 @@ export function useChatInteractions(chatId?: string) {
       });
       if (response.ok) {
         const data = await response.json();
-        const currentChat = chats.find((c) => c.id === chatId);
+        const currentChat = chats.find((c) => c.id === validChatId);
         if (currentChat) {
           const newPinnedMessages = data.isPinned
             ? [...(currentChat.pinnedMessageIds || []), message.id]
@@ -53,14 +55,14 @@ export function useChatInteractions(chatId?: string) {
 
           dispatch(
             updateChat({
-              chatId,
+              chatId: validChatId,
               updates: { pinnedMessageIds: newPinnedMessages },
             }),
           );
 
           // Emit socket event for real-time sync
           socketService.emit("message_pin", {
-            chatId,
+            chatId: validChatId,
             messageId: message.id,
             isPinned: data.isPinned,
           });
@@ -130,9 +132,9 @@ export function useChatInteractions(chatId?: string) {
         if (callback) callback();
 
         // Emit socket event for real-time sync
-        if (chatId) {
+        if (validChatId) {
           socketService.emit("message_delete", {
-            chatId,
+            chatId: validChatId,
             messageId,
           });
         }

@@ -23,6 +23,7 @@ export function useSidebar(searchQuery: string, filter: string) {
     }[]
   >([]);
   const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [loadingChats, setLoadingChats] = useState<boolean>(true);
 
   // Fetch all users on mount
   useEffect(() => {
@@ -67,6 +68,7 @@ export function useSidebar(searchQuery: string, filter: string) {
   useEffect(() => {
     const fetchChats = async () => {
       if (!token || !user) return;
+      setLoadingChats(true);
       try {
         const response = await fetch("/api/chats", {
           headers: {
@@ -178,6 +180,8 @@ export function useSidebar(searchQuery: string, filter: string) {
         }
       } catch (error) {
         console.error("Failed to fetch chats:", error);
+      } finally {
+        setLoadingChats(false);
       }
     };
 
@@ -444,6 +448,7 @@ export function useSidebar(searchQuery: string, filter: string) {
     allUsers: displayUsers,
     pinnedChats,
     otherChats,
+    loadingChats,
     handleTogglePin,
     handleToggleArchive,
     handleToggleMute,

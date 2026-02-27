@@ -27,6 +27,9 @@ import mongoose from "mongoose";
 export default function ChatPage() {
   const { id } = useParams();
   const dispatch = useDispatch();
+
+  // normalize id parameter; avoid passing literal "undefined" into hooks
+  const chatId = typeof id === "string" && id !== "undefined" && id !== "null" ? id : "";
   const searchParams = useSearchParams();
   const msgId = searchParams.get("msgId");
   const { chats } = useSelector((state: RootState) => state.chat);
@@ -58,7 +61,20 @@ export default function ChatPage() {
     scrollToMessage,
     navigateSearch,
     loadMoreMessages,
-  } = useChatMessages(id as string);
+  } = useChatMessages(chatId);
+
+  // if chatId is missing, show a placeholder briefly then bounce back to main screen
+  const router = useRouter();
+  useEffect(() => {
+    if (!chatId) {
+      // push back to root after render to avoid flicker
+      router.replace("/");
+    }
+  }, [chatId, router]);
+
+  if (!chatId) {
+    return <div className="p-4">Invalid chat ID.</div>;
+  }
 
   const {
     showEmojiPicker,
@@ -83,7 +99,7 @@ export default function ChatPage() {
     handlePinMessage,
     handleStarMessage,
     handleDeleteMessage,
-  } = useChatInteractions(id as string);
+  } = useChatInteractions(chatId);
 
   // Sync pinned messages when localMessages or chat changes
   useEffect(() => {

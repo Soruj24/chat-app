@@ -15,7 +15,13 @@ export function MessageSearchResult({ chatId, message, chatName }: MessageSearch
 
   return (
     <div 
-      onClick={() => router.push(`/chat/${chatId}?msgId=${message.id}`)}
+      onClick={() => {
+        if (chatId) {
+          router.push(`/chat/${chatId}?msgId=${message.id}`);
+        } else {
+          console.warn("Attempted to navigate to chat with undefined id from search result", message);
+        }
+      }}
       className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors border-b border-gray-50 dark:border-gray-800/10"
     >
       <div className="w-8 h-8 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center shrink-0 mt-0.5">

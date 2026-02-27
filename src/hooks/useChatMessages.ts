@@ -43,7 +43,8 @@ export function useChatMessages(chatId: string) {
 
   useEffect(() => {
     const fetchMessages = async () => {
-      if (!chatId || !token) return;
+      // guard against invalid values such as undefined string
+      if (!chatId || chatId === "undefined" || chatId === "null" || !token) return;
       setIsLoading(true);
       setLocalMessages([]); // Clear messages when switching chats
       try {
