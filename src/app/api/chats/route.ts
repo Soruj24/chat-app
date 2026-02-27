@@ -24,7 +24,7 @@ export async function GET(req: Request) {
       const chatObj = chat.toObject();
       return {
         ...chatObj,
-        id: chatObj._id,
+        id: chatObj._id.toString(),
         isPinned: chat.pinnedBy?.some((id: mongoose.Types.ObjectId) => id.toString() === userId),
         isArchived: chat.archivedBy?.some((id: mongoose.Types.ObjectId) => id.toString() === userId),
         isMuted: chat.mutedBy?.some((id: mongoose.Types.ObjectId) => id.toString() === userId),
@@ -61,7 +61,8 @@ export async function POST(req: Request) {
 
       if (chat) {
         const populatedChat = await Chat.findById(chat._id).populate("participants", "name username avatar email");
-        return NextResponse.json(populatedChat);
+        const obj = populatedChat.toObject();
+        return NextResponse.json({ ...obj, id: obj._id.toString() });
       }
 
       chat = await Chat.create({
@@ -70,7 +71,8 @@ export async function POST(req: Request) {
       });
 
       const populatedChat = await Chat.findById(chat._id).populate("participants", "name username avatar email");
-      return NextResponse.json(populatedChat);
+      const obj = populatedChat.toObject();
+      return NextResponse.json({ ...obj, id: obj._id.toString() });
     } else {
       // Create group chat
       const participants = participantIds || [participantId];
@@ -88,7 +90,8 @@ export async function POST(req: Request) {
       });
 
       const populatedChat = await Chat.findById(chat._id).populate("participants", "name username avatar email");
-      return NextResponse.json(populatedChat);
+      const obj = populatedChat.toObject();
+      return NextResponse.json({ ...obj, id: obj._id.toString() });
     }
   } catch (error: unknown) {
     if (error instanceof Error) {
