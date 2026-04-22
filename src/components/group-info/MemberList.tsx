@@ -39,7 +39,7 @@ export function MemberList({ members }: MemberListProps) {
             <div className="relative w-10 h-10 flex-shrink-0">
               <Image
                 src={member.avatar}
-                alt={member.name}
+                alt={member.name || "Member avatar"}
                 fill
                 unoptimized
                 className="rounded-full object-cover"

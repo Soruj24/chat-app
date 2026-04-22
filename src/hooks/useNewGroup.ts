@@ -32,14 +32,14 @@ export function useNewGroup(onClose: () => void) {
             (u: {
               _id?: string;
               id?: string;
-              name: string;
-              avatar: string;
+              name?: string;
+              avatar?: string;
               username?: string;
               status?: string;
             }) => ({
               id: (u._id || u.id || "").toString(),
-              name: u.name,
-              avatar: u.avatar,
+              name: u.name || u.username || "",
+              avatar: u.avatar || "",
               username: u.username || "",
               status: (u.status as UserStatus) || "offline",
             }),
@@ -54,11 +54,12 @@ export function useNewGroup(onClose: () => void) {
   }, [token]);
 
   const filteredUsers = useMemo(() => {
-    return allUsers.filter(
-      (u) =>
-        u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        u.username?.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
+    const q = searchQuery.toLowerCase();
+    return allUsers.filter((u) => {
+      const n = (u.name || "").toLowerCase();
+      const un = (u.username || "").toLowerCase();
+      return n.includes(q) || un.includes(q);
+    });
   }, [searchQuery, allUsers]);
 
   const toggleUser = (userId: string) => {

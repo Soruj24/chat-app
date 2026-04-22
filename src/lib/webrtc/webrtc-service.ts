@@ -1,10 +1,19 @@
 "use client";
 
-import Peer from "simple-peer";
 import { socketService } from "../socket/socket-client";
 
+let Peer: typeof import("simple-peer").default | null = null;
+
+async function getPeer() {
+  if (!Peer) {
+    Peer = (await import("simple-peer")).default;
+  }
+  return Peer;
+}
+
 export class WebRTCService {
-  private peer: Peer.Instance | null = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private peer: any = null;
   private stream: MediaStream | null = null;
 
   async getLocalStream(video: boolean = true) {
@@ -68,8 +77,9 @@ export class WebRTCService {
     }
   }
 
-  createPeer(userIdToCall: string, stream: MediaStream, currentUserId: string) {
-    this.peer = new Peer({
+  async createPeer(userIdToCall: string, stream: MediaStream, currentUserId: string) {
+    const PeerConstructor = await getPeer();
+    this.peer = new PeerConstructor({
       initiator: true,
       trickle: false,
       stream: stream,
@@ -88,12 +98,13 @@ export class WebRTCService {
     return this.peer;
   }
 
-  answerPeer(
-    incomingSignal: Peer.SignalData,
+  async answerPeer(
+    incomingSignal: import("simple-peer").SignalData,
     callerId: string,
     stream: MediaStream,
   ) {
-    this.peer = new Peer({
+    const PeerConstructor = await getPeer();
+    this.peer = new PeerConstructor({
       initiator: false,
       trickle: false,
       stream: stream,
@@ -111,7 +122,7 @@ export class WebRTCService {
     return this.peer;
   }
 
-  signalPeer(signal: Peer.SignalData) {
+  signalPeer(signal: import("simple-peer").SignalData) {
     if (this.peer) {
       console.log("Signaling existing peer with type:", signal.type);
       this.peer.signal(signal);

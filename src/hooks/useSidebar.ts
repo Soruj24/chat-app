@@ -49,9 +49,9 @@ export function useSidebar(searchQuery: string, filter: string) {
                 index: number,
               ) => ({
                 id: u._id || u.id || `user-${index}`,
-                name: u.name,
+                name: u.name || u.username || "Unknown",
                 username: u.username,
-                avatar: u.avatar,
+                avatar: u.avatar || "",
                 status: u.status || "offline",
               }),
             ),

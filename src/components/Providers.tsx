@@ -14,13 +14,20 @@ import { socketService } from "@/lib/socket/socket-client";
 import { Toaster, toast } from "react-hot-toast";
 import Image from "next/image";
 
-// Polyfill for simple-peer in Next.js
-if (typeof window !== "undefined" && !window.process) {
-  (window as unknown as { process?: { env: Record<string, string> } }).process =
-    { env: {} };
-}
-if (typeof window !== "undefined" && !window.global) {
-  (window as unknown as { global?: typeof window }).global = window;
+// Polyfill for simple-peer in Next.js - must be before any simple-peer imports
+if (typeof window !== "undefined") {
+  if (!window.process) {
+    (window as unknown as { process?: { env: Record<string, string> } }).process = { env: {} };
+  }
+  if (!window.global) {
+    (window as unknown as { global?: typeof window }).global = window;
+  }
+  if (!window.navigator) {
+    (window as unknown as { navigator?: Navigator }).navigator = {} as Navigator;
+  }
+  if (!window.document) {
+    (window as unknown as { document?: Document }).document = {} as Document;
+  }
 }
 
 function AuthGuard({ children }: { children: React.ReactNode }) {

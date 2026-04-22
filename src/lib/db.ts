@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI;
+const DIRECT_URI =
+  process.env.MONGODB_URI_DIRECT ||
+  process.env.MONGODB_URI_FALLBACK ||
+  process.env.MONGODB_URI_NOSRV;
 
 if (!MONGODB_URI) {
   console.error('CRITICAL: MONGODB_URI is undefined in process.env');
@@ -36,17 +40,35 @@ async function dbConnect() {
   }
 
   if (!cached!.promise) {
-    const opts = {
+    const opts: Parameters<typeof mongoose.connect>[1] = {
       bufferCommands: false,
+      serverSelectionTimeoutMS: 8000,
     };
 
     const connectionUri = MONGODB_URI!.split('@')[1] || 'local';
     console.log(`Connecting to MongoDB: ${connectionUri}`);
-    
-    cached!.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
-      console.log('MongoDB connected successfully');
-      return mongoose;
-    });
+    cached!.promise = mongoose
+      .connect(MONGODB_URI!, opts)
+      .then((m) => {
+        console.log('MongoDB connected successfully');
+        return m;
+      })
+      .catch(async (err) => {
+        const msg = String(err?.message || err);
+        const isSrvIssue =
+          msg.includes('querySrv') ||
+          msg.includes('ENOTFOUND') ||
+          msg.includes('No SRV records') ||
+          msg.includes('_mongodb._tcp');
+        if (isSrvIssue && DIRECT_URI) {
+          console.warn('SRV lookup failed. Falling back to DIRECT MongoDB URI.');
+          return mongoose.connect(DIRECT_URI, {
+            ...opts,
+            directConnection: true,
+          });
+        }
+        throw err;
+      });
   }
   
   const mongooseInstance = await cached!.promise;

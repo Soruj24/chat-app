@@ -22,7 +22,7 @@ import { EmojiPicker } from "@/components/chat-page/EmojiPicker";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import { useChatInteractions } from "@/hooks/useChatInteractions";
 import { useChatState } from "@/hooks/useChatState";
-import mongoose from "mongoose";
+type ChatMember = { _id?: string; id?: string } | string;
 
 export default function ChatPage() {
   const { id } = useParams();
@@ -198,11 +198,11 @@ export default function ChatPage() {
               targetChat?.type === "private" &&
               Array.isArray(targetChat.members)
                 ? targetChat.members.find(
-                    (p: { _id?: mongoose.Types.ObjectId | string; id?: string } | string) =>
+                    (p: ChatMember) =>
                       (typeof p === "string" ? p : (p._id?.toString() || p.id?.toString() || "")) !== user?.id,
                   )?.id ||
                   targetChat.members.find(
-                    (p: { _id?: mongoose.Types.ObjectId | string; id?: string }) =>
+                    (p: ChatMember) =>
                       (p._id?.toString() || p.id?.toString() || p) !== user?.id,
                   )?.id
                 : undefined;

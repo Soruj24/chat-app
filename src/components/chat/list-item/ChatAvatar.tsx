@@ -23,7 +23,7 @@ export function ChatAvatar({ avatar, name, status }: ChatAvatarProps) {
       {avatar ? (
         <Image
           src={avatar}
-          alt={name}
+          alt={name || "Chat avatar"}
           fill
           unoptimized
           className="rounded-full object-cover ring-1 ring-gray-100 dark:ring-gray-800"

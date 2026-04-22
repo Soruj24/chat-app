@@ -59,7 +59,7 @@ export function CallModal() {
 
   useEffect(() => {
     if (isCallModalOpen) {
-      const setupCall = async () => {
+      const setupCall = async (): Promise<void> => {
         setErrorMessage(null);
         const stream = await webrtcService.getLocalStream(callType === 'video');
         
@@ -83,7 +83,7 @@ export function CallModal() {
 
         if (callStatus === 'calling' && remoteUser && user?.id) {
           console.log("Initiating peer for outgoing call to:", remoteUser.id);
-          const peer = webrtcService.createPeer(remoteUser.id, stream!, user.id);
+          const peer = await webrtcService.createPeer(remoteUser.id, stream!, user.id);
           
           peer.on("stream", (stream) => {
             console.log("Received remote stream (outgoing call)");
@@ -148,7 +148,7 @@ export function CallModal() {
     
     const incomingSignal = (window as unknown as { incomingSignal?: RTCSessionDescriptionInit }).incomingSignal;
     if (incomingSignal) {
-      const peer = webrtcService.answerPeer(incomingSignal, remoteUser.id, stream!);
+      const peer = await webrtcService.answerPeer(incomingSignal, remoteUser.id, stream!);
       peer.on("stream", (stream) => {
         console.log("Received remote stream (incoming call)");
         setRemoteStream(stream);

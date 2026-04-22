@@ -9,9 +9,10 @@ export function useForwardModal(onForward: (chatIds: string[]) => void, onClose:
   const [selectedChatIds, setSelectedChatIds] = useState<Set<string>>(new Set());
   const { chats } = useSelector((state: RootState) => state.chat);
 
-  const filteredChats = chats.filter((chat) =>
-    chat.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const filteredChats = chats.filter((chat) => {
+    const name = (chat.name || "").toLowerCase();
+    return name.includes(searchQuery.toLowerCase());
+  });
 
   const toggleChatSelection = (chatId: string) => {
     const next = new Set(selectedChatIds);
