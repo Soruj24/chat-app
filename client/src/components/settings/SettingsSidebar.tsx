@@ -63,7 +63,7 @@ export function SettingsSidebar({
                 isActive
                   ? {
                       backgroundColor: "var(--accent)",
-                      boxShadow: `0 4px 16px ${appearance?.accentColor || 'var(--accent)'}33`,
+                      boxShadow: "0 4px 16px var(--accent)33",
                     }
                   : {}
               }

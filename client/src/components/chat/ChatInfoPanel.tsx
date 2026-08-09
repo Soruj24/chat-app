@@ -18,6 +18,7 @@ interface ChatInfoPanelProps {
   onThemeChange?: (color: string) => void;
   starredMessages?: Message[];
   onMessageClick?: (messageId: string) => void;
+  inline?: boolean;
 }
 
 export interface Wallpaper {
@@ -50,7 +51,7 @@ const WALLPAPERS: Wallpaper[] = [
   { id: 'pattern-3', url: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=1000&auto=format&fit=crop', label: 'Wooden Surface', category: 'Patterns' },
 ];
 
-export function ChatInfoPanel({ chat, messages = [], onClose, onWallpaperChange, onThemeChange, starredMessages, onMessageClick }: ChatInfoPanelProps) {
+export function ChatInfoPanel({ chat, messages = [], onClose, onWallpaperChange, onThemeChange, starredMessages, onMessageClick, inline }: ChatInfoPanelProps) {
   const [viewMode, setViewMode] = useState<"info" | "media" | "wallpaper" | "starred" | "search" | "theme">("info");
 
   // Generate more media for "View All" mode
@@ -59,115 +60,129 @@ export function ChatInfoPanel({ chat, messages = [], onClose, onWallpaperChange,
     url: `https://picsum.photos/seed/${chat.id}-${i}/400`
   }));
 
+  const panelContent = (
+    <AnimatePresence mode="wait">
+      {viewMode === "info" && (
+        <motion.div
+          key="info"
+          initial={{ opacity: 0, x: inline ? 0 : 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: inline ? 0 : -20 }}
+          className="h-full"
+        >
+          <ChatInfoMainView 
+            chat={chat}
+            onClose={onClose}
+            setViewMode={setViewMode}
+            starredMessages={starredMessages}
+            allMedia={allMedia}
+          />
+        </motion.div>
+      )}
+
+      {viewMode === "media" && (
+        <motion.div
+          key="media"
+          initial={{ opacity: 0, x: inline ? 0 : 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: inline ? 0 : -20 }}
+          className="h-full"
+        >
+          <ChatMediaView 
+            allMedia={allMedia}
+            onBack={() => setViewMode("info")}
+          />
+        </motion.div>
+      )}
+
+      {viewMode === "starred" && (
+        <motion.div
+          key="starred"
+          initial={{ opacity: 0, x: inline ? 0 : 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: inline ? 0 : -20 }}
+          className="h-full"
+        >
+          <ChatStarredView 
+            starredMessages={starredMessages}
+            chat={chat}
+            onBack={() => setViewMode("info")}
+            onMessageClick={onMessageClick}
+          />
+        </motion.div>
+      )}
+
+      {viewMode === "wallpaper" && (
+        <motion.div
+          key="wallpaper"
+          initial={{ opacity: 0, x: inline ? 0 : 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: inline ? 0 : -20 }}
+          className="h-full"
+        >
+          <ChatWallpaperView 
+            chat={chat}
+            wallpapers={WALLPAPERS}
+            onBack={() => setViewMode("info")}
+            onWallpaperChange={onWallpaperChange}
+          />
+        </motion.div>
+      )}
+
+      {viewMode === "search" && (
+        <motion.div
+          key="search"
+          initial={{ opacity: 0, x: inline ? 0 : 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: inline ? 0 : -20 }}
+          className="h-full"
+        >
+          <ChatSearchView 
+            messages={messages}
+            chat={chat}
+            onBack={() => setViewMode("info")}
+            onMessageClick={onMessageClick}
+          />
+        </motion.div>
+      )}
+
+      {viewMode === "theme" && (
+        <motion.div
+          key="theme"
+          initial={{ opacity: 0, x: inline ? 0 : 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: inline ? 0 : -20 }}
+          className="h-full"
+        >
+          <ChatThemeView 
+            chat={chat}
+            onBack={() => setViewMode("info")}
+            onThemeChange={onThemeChange}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  // Inline mode: render without absolute positioning (used in wide screen layout)
+  if (inline) {
+    return (
+      <div className="flex flex-col h-full bg-white dark:bg-gray-900">
+        {panelContent}
+      </div>
+    );
+  }
+
+  // Overlay mode: absolute positioned panel with slide-in animation
   return (
     <motion.div
       initial={{ x: "100%" }}
       animate={{ x: 0 }}
       exit={{ x: "100%" }}
       transition={{ type: "spring", damping: 25, stiffness: 200 }}
-      className="absolute inset-y-0 right-0 w-full md:w-80 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 z-50 flex flex-col shadow-2xl"
+      className="fixed inset-y-0 right-0 w-full md:w-80 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 z-50 flex flex-col shadow-2xl"
     >
-      <AnimatePresence mode="wait">
-        {viewMode === "info" && (
-          <motion.div
-            key="info"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="h-full"
-          >
-            <ChatInfoMainView 
-              chat={chat}
-              onClose={onClose}
-              setViewMode={setViewMode}
-              starredMessages={starredMessages}
-              allMedia={allMedia}
-            />
-          </motion.div>
-        )}
-
-        {viewMode === "media" && (
-          <motion.div
-            key="media"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="h-full"
-          >
-            <ChatMediaView 
-              allMedia={allMedia}
-              onBack={() => setViewMode("info")}
-            />
-          </motion.div>
-        )}
-
-        {viewMode === "starred" && (
-          <motion.div
-            key="starred"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="h-full"
-          >
-            <ChatStarredView 
-              starredMessages={starredMessages}
-              chat={chat}
-              onBack={() => setViewMode("info")}
-              onMessageClick={onMessageClick}
-            />
-          </motion.div>
-        )}
-
-        {viewMode === "wallpaper" && (
-          <motion.div
-            key="wallpaper"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="h-full"
-          >
-            <ChatWallpaperView 
-              chat={chat}
-              wallpapers={WALLPAPERS}
-              onBack={() => setViewMode("info")}
-              onWallpaperChange={onWallpaperChange}
-            />
-          </motion.div>
-        )}
-
-        {viewMode === "search" && (
-          <motion.div
-            key="search"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="h-full"
-          >
-            <ChatSearchView 
-              messages={messages}
-              chat={chat}
-              onBack={() => setViewMode("info")}
-              onMessageClick={onMessageClick}
-            />
-          </motion.div>
-        )}
-
-        {viewMode === "theme" && (
-          <motion.div
-            key="theme"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="h-full"
-          >
-            <ChatThemeView 
-              chat={chat}
-              onBack={() => setViewMode("info")}
-              onThemeChange={onThemeChange}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {panelContent}
     </motion.div>
   );
 }

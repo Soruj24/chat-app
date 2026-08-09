@@ -18,11 +18,22 @@ import { useChatState } from "@/hooks/useChatState";
 import { socketService } from "@/lib/socket/socket-client";
 import { setActiveChat } from "@/store/slices/chatSlice";
 import { RootState } from "@/store/store";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 type ChatMember = { _id?: string; id?: string } | string;
+
+function useWideScreen(): boolean {
+  const [wide, setWide] = useState(false);
+  useEffect(() => {
+    const check = () => setWide(window.innerWidth >= 1280);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+  return wide;
+}
 
 export default function ChatPage() {
   const { id } = useParams();
@@ -251,6 +262,8 @@ export default function ChatPage() {
     starredMessageIds.has(m.id),
   );
 
+  const isWideScreen = useWideScreen();
+
   const handleReaction = async (
     message: {
       id: string;
@@ -323,215 +336,241 @@ export default function ChatPage() {
     }
   };
 
+  const chatInfoPanelProps = {
+    chat: {
+      ...chat,
+      wallpaper: chatWallpaper,
+      themeColor: chatThemeColor,
+    },
+    messages: localMessages,
+    onClose: () => setShowInfo(false),
+    onWallpaperChange: setChatWallpaper,
+    onThemeChange: setChatThemeColor,
+    starredMessages,
+    onMessageClick: (msgId: string) => {
+      scrollToMessage(msgId);
+      if (!isWideScreen) setShowInfo(false);
+    },
+  };
+
   return (
-    <div className="flex flex-col h-full bg-[#8e8e93]/10 dark:bg-[#0f0f0f] relative overflow-hidden">
-      <ChatHeader
-        chat={{ ...chat, themeColor: chatThemeColor }}
-        isOnline={isOnline}
-        isSearchOpen={isSearchOpen}
-        setIsSearchOpen={setIsSearchOpen}
-        setShowInfo={setShowInfo}
-      />
+    <div className="flex h-full bg-[#8e8e93]/10 dark:bg-[#0f0f0f] relative overflow-hidden">
+      {/* Chat column */}
+      <div className="flex-1 min-w-0 flex flex-col h-full relative">
+        <ChatHeader
+          chat={{ ...chat, themeColor: chatThemeColor }}
+          isOnline={isOnline}
+          isSearchOpen={isSearchOpen}
+          setIsSearchOpen={setIsSearchOpen}
+          setShowInfo={setShowInfo}
+          showInfo={showInfo}
+          isWideScreen={isWideScreen}
+        />
 
-      <PinnedMessagesBar
-        pinnedMessages={pinnedMessages}
-        currentPinnedIndex={currentPinnedIndex}
-        onNavigate={() => {
-          const msg = pinnedMessages[currentPinnedIndex];
-          scrollToMessage(msg.id);
-          setCurrentPinnedIndex((prev) => (prev + 1) % pinnedMessages.length);
-        }}
-        onClear={() => setPinnedMessages([])}
-      />
-
-      <ChatSearch
-        isOpen={isSearchOpen}
-        query={searchQuery}
-        setQuery={(q) => {
-          setSearchQuery(q);
-          setSearchIndex(0);
-        }}
-        filteredCount={filteredMessages.length}
-        currentIndex={searchIndex}
-        onNavigate={navigateSearch}
-        onClose={() => {
-          setIsSearchOpen(false);
-          setSearchQuery("");
-          setSearchIndex(0);
-        }}
-      />
-
-      <MessageList
-        scrollContainerRef={scrollContainerRef}
-        onScroll={() =>
-          handleScroll(isPaginationLoading, isLoading, loadMoreMessages)
-        }
-        chatWallpaper={chatWallpaper}
-        themeColor={chatThemeColor}
-        isPaginationLoading={isPaginationLoading}
-        isLoading={isLoading}
-        localMessages={localMessages}
-        groupedMessages={groupedMessages}
-        messageRefs={messageRefs}
-        highlightedMessageId={highlightedMessageId}
-        starredMessageIds={starredMessageIds}
-        pinnedMessages={pinnedMessages}
-        searchQuery={searchQuery}
-        chatType={chat.type}
-        chatId={chat.id}
-        onImageClick={setLightboxUrl}
-        onReply={setReplyingTo}
-        onForward={setForwardingMessage}
-        onLike={(message) => handleReaction(message, "❤️")}
-        onReaction={handleReaction}
-        onContextMenu={(e, message) => {
-          e.preventDefault();
-          setContextMenu({
-            x: e.clientX,
-            y: e.clientY,
-            message,
-          });
-        }}
-        messagesEndRef={messagesEndRef}
-        isTyping={isTyping}
-        typingUser={typingUser}
-        fontSize={user?.settings?.fontSize}
-        bubbleStyle={user?.settings?.bubbleStyle}
-        accentColor={user?.settings?.accentColor}
-      />
-
-      <ScrollToBottomButton
-        isVisible={showScrollToBottom}
-        unreadCount={unreadCount}
-        onClick={scrollToBottom}
-      />
-
-      <EmojiPicker
-        isOpen={showEmojiPicker}
-        onSelect={(emoji) => {
-          setInputValue((prev) => prev + emoji);
-          setShowEmojiPicker(false);
-        }}
-        onClose={() => setShowEmojiPicker(false)}
-      />
-
-      <MessageInput
-        value={inputValue}
-        onChange={setInputValue}
-        onSendMessage={handleSendMessage}
-        onSendMedia={handleSendMedia}
-        onSendVoice={handleSendMedia}
-        onSendLocation={handleSendLocation}
-        onSendContact={() => setIsContactPickerOpen(true)}
-        replyingTo={replyingTo}
-        onCancelReply={() => setReplyingTo(null)}
-        showEmojiPicker={showEmojiPicker}
-        setShowEmojiPicker={setShowEmojiPicker}
-        themeColor={chatThemeColor}
-        users={chat?.members || []}
-        onCommand={(command) => {
-          switch (command) {
-            case "image":
-            case "file": {
-              const input = document.createElement("input");
-              input.type = "file";
-              input.accept = command === "image" ? "image/*" : "*/*";
-              input.onchange = (e) => {
-                const file = (e.target as HTMLInputElement).files?.[0];
-                if (file) handleSendMedia(file);
-              };
-              input.click();
-              break;
-            }
-            case "location":
-              handleSendLocation();
-              break;
-            case "contact":
-              setIsContactPickerOpen(true);
-              break;
-            case "gif":
-              setShowEmojiPicker(false);
-              break;
-            case "emoji":
-              setShowEmojiPicker(true);
-              break;
-            case "bold":
-              setInputValue((prev) => `**${prev}**`);
-              break;
-            case "italic":
-              setInputValue((prev) => `_${prev}_`);
-              break;
-            case "code":
-              setInputValue((prev) => `\`${prev}\``);
-              break;
-            default:
-              break;
-          }
-        }}
-      />
-
-      <ContactPickerModal
-        isOpen={isContactPickerOpen}
-        onClose={() => setIsContactPickerOpen(false)}
-        onSelect={handleSendContact}
-      />
-
-      <Lightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
-
-      <AnimatePresence>
-        {forwardingMessage && (
-          <ForwardModal
-            message={forwardingMessage}
-            onClose={() => setForwardingMessage(null)}
-            onForward={handleForward}
-          />
-        )}
-      </AnimatePresence>
-
-      {contextMenu && (
-        <ContextMenu
-          x={contextMenu.x}
-          y={contextMenu.y}
-          isPinned={
-            !!pinnedMessages.find((m) => m.id === contextMenu.message.id)
-          }
-          isStarred={starredMessageIds.has(contextMenu.message.id)}
-          onClose={() => setContextMenu(null)}
-          onReply={() => setReplyingTo(contextMenu.message)}
-          onForward={() => setForwardingMessage(contextMenu.message)}
-          onPin={() => handlePinMessage(contextMenu.message)}
-          onStar={() => handleStarMessage(contextMenu.message)}
-          onDelete={() => handleDelete(contextMenu.message)}
-          onCopy={() => {
-            navigator.clipboard.writeText(contextMenu.message.text || "");
+        <PinnedMessagesBar
+          pinnedMessages={pinnedMessages}
+          currentPinnedIndex={currentPinnedIndex}
+          onNavigate={() => {
+            const msg = pinnedMessages[currentPinnedIndex];
+            scrollToMessage(msg.id);
+            setCurrentPinnedIndex((prev) => (prev + 1) % pinnedMessages.length);
           }}
-          onReact={(emoji) => {
-            handleReaction(contextMenu.message, emoji);
-            setContextMenu(null);
+          onClear={() => setPinnedMessages([])}
+        />
+
+        <ChatSearch
+          isOpen={isSearchOpen}
+          query={searchQuery}
+          setQuery={(q) => {
+            setSearchQuery(q);
+            setSearchIndex(0);
+          }}
+          filteredCount={filteredMessages.length}
+          currentIndex={searchIndex}
+          onNavigate={navigateSearch}
+          onClose={() => {
+            setIsSearchOpen(false);
+            setSearchQuery("");
+            setSearchIndex(0);
           }}
         />
-      )}
 
-      <AnimatePresence>
-        {showInfo && (
-          <ChatInfoPanel
-            chat={{
-              ...chat,
-              wallpaper: chatWallpaper,
-              themeColor: chatThemeColor,
+        <MessageList
+          scrollContainerRef={scrollContainerRef}
+          onScroll={() =>
+            handleScroll(isPaginationLoading, isLoading, loadMoreMessages)
+          }
+          chatWallpaper={chatWallpaper}
+          themeColor={chatThemeColor}
+          isPaginationLoading={isPaginationLoading}
+          isLoading={isLoading}
+          localMessages={localMessages}
+          groupedMessages={groupedMessages}
+          messageRefs={messageRefs}
+          highlightedMessageId={highlightedMessageId}
+          starredMessageIds={starredMessageIds}
+          pinnedMessages={pinnedMessages}
+          searchQuery={searchQuery}
+          chatType={chat.type}
+          chatId={chat.id}
+          onImageClick={setLightboxUrl}
+          onReply={setReplyingTo}
+          onForward={setForwardingMessage}
+          onLike={(message) => handleReaction(message, "❤️")}
+          onReaction={handleReaction}
+          onContextMenu={(e, message) => {
+            e.preventDefault();
+            setContextMenu({
+              x: e.clientX,
+              y: e.clientY,
+              message,
+            });
+          }}
+          messagesEndRef={messagesEndRef}
+          isTyping={isTyping}
+          typingUser={typingUser}
+          fontSize={user?.settings?.fontSize}
+          bubbleStyle={user?.settings?.bubbleStyle}
+          accentColor={user?.settings?.accentColor}
+        />
+
+        <ScrollToBottomButton
+          isVisible={showScrollToBottom}
+          unreadCount={unreadCount}
+          onClick={scrollToBottom}
+        />
+
+        <EmojiPicker
+          isOpen={showEmojiPicker}
+          onSelect={(emoji) => {
+            setInputValue((prev) => prev + emoji);
+            setShowEmojiPicker(false);
+          }}
+          onClose={() => setShowEmojiPicker(false)}
+        />
+
+        <MessageInput
+          value={inputValue}
+          onChange={setInputValue}
+          onSendMessage={handleSendMessage}
+          onSendMedia={handleSendMedia}
+          onSendVoice={handleSendMedia}
+          onSendLocation={handleSendLocation}
+          onSendContact={() => setIsContactPickerOpen(true)}
+          replyingTo={replyingTo}
+          onCancelReply={() => setReplyingTo(null)}
+          showEmojiPicker={showEmojiPicker}
+          setShowEmojiPicker={setShowEmojiPicker}
+          themeColor={chatThemeColor}
+          users={chat?.members || []}
+          onCommand={(command) => {
+            switch (command) {
+              case "image":
+              case "file": {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = command === "image" ? "image/*" : "*/*";
+                input.onchange = (e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0];
+                  if (file) handleSendMedia(file);
+                };
+                input.click();
+                break;
+              }
+              case "location":
+                handleSendLocation();
+                break;
+              case "contact":
+                setIsContactPickerOpen(true);
+                break;
+              case "gif":
+                setShowEmojiPicker(false);
+                break;
+              case "emoji":
+                setShowEmojiPicker(true);
+                break;
+              case "bold":
+                setInputValue((prev) => `**${prev}**`);
+                break;
+              case "italic":
+                setInputValue((prev) => `_${prev}_`);
+                break;
+              case "code":
+                setInputValue((prev) => `\`${prev}\``);
+                break;
+              default:
+                break;
+            }
+          }}
+        />
+
+        <ContactPickerModal
+          isOpen={isContactPickerOpen}
+          onClose={() => setIsContactPickerOpen(false)}
+          onSelect={handleSendContact}
+        />
+
+        <Lightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
+
+        <AnimatePresence>
+          {forwardingMessage && (
+            <ForwardModal
+              message={forwardingMessage}
+              onClose={() => setForwardingMessage(null)}
+              onForward={handleForward}
+            />
+          )}
+        </AnimatePresence>
+
+        {contextMenu && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            isPinned={
+              !!pinnedMessages.find((m) => m.id === contextMenu.message.id)
+            }
+            isStarred={starredMessageIds.has(contextMenu.message.id)}
+            onClose={() => setContextMenu(null)}
+            onReply={() => setReplyingTo(contextMenu.message)}
+            onForward={() => setForwardingMessage(contextMenu.message)}
+            onPin={() => handlePinMessage(contextMenu.message)}
+            onStar={() => handleStarMessage(contextMenu.message)}
+            onDelete={() => handleDelete(contextMenu.message)}
+            onCopy={() => {
+              navigator.clipboard.writeText(contextMenu.message.text || "");
             }}
-            messages={localMessages}
-            onClose={() => setShowInfo(false)}
-            onWallpaperChange={setChatWallpaper}
-            onThemeChange={setChatThemeColor}
-            starredMessages={starredMessages}
-            onMessageClick={(msgId) => {
-              scrollToMessage(msgId);
-              setShowInfo(false);
+            onReact={(emoji) => {
+              handleReaction(contextMenu.message, emoji);
+              setContextMenu(null);
             }}
           />
         )}
-      </AnimatePresence>
+      </div>
+
+      {/* Details panel — inline on wide screens, overlay on narrow */}
+      {isWideScreen ? (
+        showInfo && (
+          <div className="app-details-panel flex flex-col bg-[var(--bg)] border-l border-[var(--border-default)]">
+            <ChatInfoPanel {...chatInfoPanelProps} inline />
+          </div>
+        )
+      ) : (
+        <AnimatePresence>
+          {showInfo && (
+            <>
+              {/* Overlay backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-40 bg-black/40"
+                onClick={() => setShowInfo(false)}
+              />
+              <ChatInfoPanel {...chatInfoPanelProps} />
+            </>
+          )}
+        </AnimatePresence>
+      )}
     </div>
   );
 }

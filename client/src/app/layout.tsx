@@ -39,10 +39,10 @@ export default function RootLayout({
           storageKey="chat-theme"
         >
           <Providers>
-            <div className="flex h-full w-full overflow-hidden relative">
+            <div className="app-layout">
               <Sidebar />
               <main
-                className="flex-1 flex flex-col min-w-0 relative z-10"
+                className="app-chat-column"
                 style={{ background: "var(--bg)" }}
               >
                 {children}

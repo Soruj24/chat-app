@@ -127,6 +127,8 @@
   --glass-shadow: 0 8px 32px rgb(0 0 0 / 0.06);
 
   /* Sidebar */
+  --sidebar-width: 360px;
+  --sidebar-width-collapsed: 72px;
   --sidebar-bg: #ffffff;
   --sidebar-bg-secondary: #f8fafc;
   --sidebar-border: #e2e8f0;
@@ -139,6 +141,10 @@
   --sidebar-unread-badge: #3b82f6;
   --sidebar-glass-bg: rgba(255, 255, 255, 0.85);
   --sidebar-glass-border: rgba(226, 232, 240, 0.6);
+
+  /* Layout */
+  --header-height: 56px;
+  --details-width: 360px;
 
   /* Workspace */
   --workspace-bg: #f1f5f9;
@@ -256,6 +262,8 @@
   --glass-border-strong: rgba(51, 65, 85, 0.6);
   --glass-shadow: 0 8px 32px rgb(0 0 0 / 0.3);
 
+  --sidebar-width: 360px;
+  --sidebar-width-collapsed: 72px;
   --sidebar-bg: #0f172a;
   --sidebar-bg-secondary: #1e293b;
   --sidebar-border: #334155;
@@ -268,6 +276,9 @@
   --sidebar-unread-badge: #60a5fa;
   --sidebar-glass-bg: rgba(15, 23, 42, 0.85);
   --sidebar-glass-border: rgba(51, 65, 85, 0.6);
+
+  --header-height: 56px;
+  --details-width: 360px;
 
   --workspace-bg: #1e293b;
   --workspace-active-bg: #60a5fa;
@@ -351,6 +362,8 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.6), 0 8px 10px -6px rgb(0 0 0 / 0.5);
 
+  --sidebar-width: 360px;
+  --sidebar-width-collapsed: 72px;
   --sidebar-bg: #0c1222;
   --sidebar-bg-secondary: #111827;
   --sidebar-border: #1e2d4a;
@@ -363,6 +376,9 @@
   --sidebar-unread-badge: #f59e0b;
   --sidebar-glass-bg: rgba(12, 18, 34, 0.88);
   --sidebar-glass-border: rgba(30, 45, 74, 0.6);
+
+  --header-height: 56px;
+  --details-width: 360px;
 
   --workspace-bg: #162032;
   --workspace-active-bg: #f59e0b;
@@ -446,6 +462,8 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.4);
 
+  --sidebar-width: 360px;
+  --sidebar-width-collapsed: 72px;
   --sidebar-bg: rgba(15, 15, 35, 0.85);
   --sidebar-bg-secondary: rgba(22, 22, 42, 0.85);
   --sidebar-border: rgba(255, 255, 255, 0.08);
@@ -458,6 +476,9 @@
   --sidebar-unread-badge: #06b6d4;
   --sidebar-glass-bg: rgba(15, 15, 35, 0.7);
   --sidebar-glass-border: rgba(255, 255, 255, 0.08);
+
+  --header-height: 56px;
+  --details-width: 360px;
 
   --workspace-bg: rgba(22, 22, 42, 0.85);
   --workspace-active-bg: #06b6d4;
@@ -541,6 +562,8 @@
   --shadow-lg: 0 2px 0 0 #e5e5e5;
   --shadow-xl: 0 4px 0 0 #e5e5e5;
 
+  --sidebar-width: 360px;
+  --sidebar-width-collapsed: 72px;
   --sidebar-bg: #ffffff;
   --sidebar-bg-secondary: #fafafa;
   --sidebar-border: #e5e5e5;
@@ -553,6 +576,9 @@
   --sidebar-unread-badge: #111111;
   --sidebar-glass-bg: rgba(255, 255, 255, 0.95);
   --sidebar-glass-border: rgba(229, 229, 229, 0.8);
+
+  --header-height: 56px;
+  --details-width: 360px;
 
   --workspace-bg: #f5f5f5;
   --workspace-active-bg: #111111;
@@ -636,6 +662,8 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.06);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.08);
 
+  --sidebar-width: 360px;
+  --sidebar-width-collapsed: 72px;
   --sidebar-bg: #3F0E40;
   --sidebar-bg-secondary: #350D36;
   --sidebar-border: rgba(255, 255, 255, 0.1);
@@ -648,6 +676,9 @@
   --sidebar-unread-badge: #e01e5a;
   --sidebar-glass-bg: rgba(63, 14, 64, 0.92);
   --sidebar-glass-border: rgba(255, 255, 255, 0.08);
+
+  --header-height: 56px;
+  --details-width: 360px;
 
   --workspace-bg: #350D36;
   --workspace-active-bg: #4a154b;
@@ -731,6 +762,8 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.4);
 
+  --sidebar-width: 360px;
+  --sidebar-width-collapsed: 72px;
   --sidebar-bg: #2b2d31;
   --sidebar-bg-secondary: #232428;
   --sidebar-border: #3f4147;
@@ -743,6 +776,9 @@
   --sidebar-unread-badge: #f23f43;
   --sidebar-glass-bg: rgba(43, 45, 49, 0.9);
   --sidebar-glass-border: rgba(63, 65, 71, 0.6);
+
+  --header-height: 56px;
+  --details-width: 360px;
 
   --workspace-bg: #232428;
   --workspace-active-bg: #5865f2;
@@ -826,6 +862,8 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.4);
 
+  --sidebar-width: 360px;
+  --sidebar-width-collapsed: 72px;
   --sidebar-bg: #171717;
   --sidebar-bg-secondary: #212121;
   --sidebar-border: #2f2f2f;
@@ -838,6 +876,9 @@
   --sidebar-unread-badge: #10a37f;
   --sidebar-glass-bg: rgba(23, 23, 23, 0.9);
   --sidebar-glass-border: rgba(47, 47, 47, 0.6);
+
+  --header-height: 56px;
+  --details-width: 360px;
 
   --workspace-bg: #171717;
   --workspace-active-bg: #10a37f;
@@ -1937,4 +1978,148 @@ body {
   .animate-pulse-ring {
     animation: none;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THREE-SECTION LAYOUT — Responsive breakpoints & utility classes
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/*
+  Breakpoints:
+  - Mobile:    < 768px   (conversation list or chat full width)
+  - Tablet:    768-1023px (compact sidebar + chat, details as drawer)
+  - Desktop:   1024-1279px (sidebar + chat, details as drawer)
+  - Wide:      >= 1280px  (sidebar + chat + details all visible)
+  - UltraWide: >= 1440px  (wider sidebar + chat + details)
+*/
+
+/* Root layout container */
+.app-layout {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Sidebar container */
+.app-sidebar {
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  height: 100%;
+  flex-shrink: 0;
+  z-index: 20;
+}
+
+/* Chat column (header + messages + input) */
+.app-chat-column {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Details panel (persistent on wide screens, drawer on smaller) */
+.app-details-panel {
+  width: var(--details-width);
+  min-width: var(--details-width);
+  height: 100%;
+  flex-shrink: 0;
+  z-index: 20;
+}
+
+/* ─── Tablet (768-1023): Compact icon-only sidebar ────────────────────── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .app-sidebar {
+    width: var(--sidebar-width-collapsed);
+    min-width: var(--sidebar-width-collapsed);
+  }
+}
+
+/* ─── Mobile (<768): Full-width panels, no sidebar visible ────────────── */
+@media (max-width: 767px) {
+  .app-layout {
+    position: relative;
+  }
+
+  .app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform var(--duration-slow) var(--ease-out);
+  }
+
+  .app-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .app-chat-column {
+    width: 100%;
+  }
+
+  .app-details-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100%;
+    z-index: 50;
+    transform: translateX(100%);
+    transition: transform var(--duration-slow) var(--ease-out);
+  }
+
+  .app-details-panel.open {
+    transform: translateX(0);
+  }
+}
+
+/* ─── Desktop (1024-1279): Sidebar + Chat, details as drawer ─────────── */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .app-details-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100%;
+    z-index: 50;
+    transform: translateX(100%);
+    transition: transform var(--duration-slow) var(--ease-out);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .app-details-panel.open {
+    transform: translateX(0);
+  }
+}
+
+/* ─── Wide (>=1280): All three sections visible ──────────────────────── */
+@media (min-width: 1280px) {
+  .app-details-panel {
+    position: relative;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .app-details-panel.open {
+    transform: none;
+  }
+}
+
+/* ─── Overlay backdrop for mobile/drawer panels ──────────────────────── */
+.app-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 40;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-normal) var(--ease-default);
+}
+
+.app-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
 }

@@ -23,9 +23,11 @@ interface ChatHeaderProps {
   isSearchOpen: boolean;
   setIsSearchOpen: (open: boolean) => void;
   setShowInfo: (show: boolean) => void;
+  showInfo?: boolean;
+  isWideScreen?: boolean;
 }
 
-export function ChatHeader({ chat, isOnline, isSearchOpen, setIsSearchOpen, setShowInfo }: ChatHeaderProps) {
+export function ChatHeader({ chat, isOnline, isSearchOpen, setIsSearchOpen, setShowInfo, showInfo, isWideScreen }: ChatHeaderProps) {
   const dispatch = useDispatch();
 
   const handleCall = (type: "audio" | "video") => {
@@ -80,7 +82,7 @@ export function ChatHeader({ chat, isOnline, isSearchOpen, setIsSearchOpen, setS
         {/* Name & status */}
         <div
           className="min-w-0 cursor-pointer hover:opacity-80 transition-opacity duration-200"
-          onClick={() => setShowInfo(true)}
+          onClick={() => setShowInfo(!showInfo)}
         >
           <h2 className="font-semibold text-sm text-[var(--fg)] truncate leading-tight">
             {chat.name}
@@ -143,8 +145,13 @@ export function ChatHeader({ chat, isOnline, isSearchOpen, setIsSearchOpen, setS
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.92 }}
           transition={spring.gentle}
-          className="p-2 rounded-[var(--radius-lg)] text-[var(--fg-tertiary)] hover:bg-[var(--surface-hover)] hover:text-[var(--fg)] transition-all duration-200"
-          onClick={() => setShowInfo(true)}
+          className={cn(
+            "p-2 rounded-[var(--radius-lg)] transition-all duration-200",
+            showInfo
+              ? "bg-[var(--accent-light)] text-[var(--accent)]"
+              : "text-[var(--fg-tertiary)] hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
+          )}
+          onClick={() => setShowInfo(!showInfo)}
         >
           <Info className="w-[18px] h-[18px]" />
         </motion.button>
