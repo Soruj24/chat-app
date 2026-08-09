@@ -24,15 +24,14 @@ export function SidebarSearch({ value, onChange, onClear }: SidebarSearchProps) 
         inputRef.current?.blur();
       }
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClear]);
 
   return (
-    <div className="px-3 pb-3">
+    <div className="px-3 py-2">
       <div className="relative group">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--sidebar-text-muted)] group-focus-within:text-[var(--color-primary)] transition-colors duration-200" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] group-focus-within:text-[var(--primary)] transition-colors duration-200" />
         <input
           ref={inputRef}
           type="text"
@@ -40,27 +39,29 @@ export function SidebarSearch({ value, onChange, onClear }: SidebarSearchProps) 
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className={cn(
-            "w-full pl-10 pr-20 py-2.5 rounded-[var(--radius-xl)] text-sm font-medium",
-            "bg-[var(--surface-secondary)] text-[var(--sidebar-text)] placeholder:text-[var(--sidebar-text-muted)]",
-            "border border-transparent focus:border-[var(--color-primary)]/20",
-            "focus:outline-none focus:bg-[var(--bg-elevated)] focus:ring-2 focus:ring-[var(--color-primary)]/10",
-            "transition-all duration-200 shadow-[var(--shadow-xs)]"
+            "w-full h-9 pl-9 pr-16 rounded-[var(--radius-ds)] text-sm",
+            "bg-[var(--muted)] text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]",
+            "border border-transparent",
+            "focus:outline-none focus:border-[var(--primary)]/30 focus:bg-[var(--background)] focus:ring-2 focus:ring-[var(--primary)]/10",
+            "transition-all duration-200"
           )}
         />
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
           {value ? (
             <button
               onClick={onClear}
-              className="p-1 rounded-[var(--radius-sm)] hover:bg-[var(--sidebar-hover)] text-[var(--sidebar-text-muted)] transition-colors duration-200"
+              className="p-1 rounded-[var(--radius-ds)] hover:bg-[var(--border-ds)] text-[var(--muted-foreground)] transition-colors"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           ) : (
-            <div className="flex items-center gap-0.5">
-              <span className="kbd">
+            <div className="flex items-center gap-0.5 text-[var(--muted-foreground)]">
+              <kbd className="inline-flex items-center justify-center h-5 min-w-[20px] px-1 text-[10px] font-mono font-medium bg-[var(--background)] border border-[var(--border-ds)] rounded-[var(--radius-ds)]">
                 <Command className="w-2.5 h-2.5" />
-              </span>
-              <span className="kbd">K</span>
+              </kbd>
+              <kbd className="inline-flex items-center justify-center h-5 min-w-[20px] px-1 text-[10px] font-mono font-medium bg-[var(--background)] border border-[var(--border-ds)] rounded-[var(--radius-ds)]">
+                K
+              </kbd>
             </div>
           )}
         </div>

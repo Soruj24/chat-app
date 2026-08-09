@@ -5,23 +5,22 @@ import { useParams, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { SidebarProfile } from "./sidebar/SidebarProfile";
-import { SidebarSearch } from "./sidebar/SidebarSearch";
-import { SidebarFilters } from "./sidebar/SidebarFilters";
-import { SidebarChatList } from "./sidebar/SidebarChatList";
-import { SidebarSearchResults } from "./sidebar/SidebarSearchResults";
-import { OnlineUsers } from "./sidebar/OnlineUsers";
+import { useSidebar } from "@/hooks/useSidebar";
 import { SettingsModal } from "./chat/SettingsModal";
 import { NewGroupModal } from "./chat/NewGroupModal";
-import { useSidebar } from "@/hooks/useSidebar";
-import { MessageSquare, Users, Search, Settings, Plus } from "lucide-react";
+import { SidebarHeader } from "./sidebar/SidebarHeader";
+import { SidebarSearch } from "./sidebar/SidebarSearch";
+import { SidebarFilters } from "./sidebar/SidebarFilters";
+import { ConversationList } from "./sidebar/ConversationList";
+import { SidebarEmptyState } from "./sidebar/SidebarEmptyState";
+import { ChatListSkeleton } from "./sidebar/ChatListSkeleton";
+import { X, MessageSquarePlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type BreakpointMode = "mobile" | "tablet" | "desktop";
 
 function useBreakpointMode(): BreakpointMode {
   const [mode, setMode] = useState<BreakpointMode>("desktop");
-
   useEffect(() => {
     const check = () => {
       const w = window.innerWidth;
@@ -33,28 +32,21 @@ function useBreakpointMode(): BreakpointMode {
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
-
   return mode;
 }
 
 export default function Sidebar() {
-  const params = useParams();
   const pathname = usePathname();
-  const { activeChatId } = useSelector((state: RootState) => state.chat);
   const mode = useBreakpointMode();
-
   const activeId = pathname?.startsWith("/chat/") ? pathname.split("/")[2] : undefined;
 
-  // State
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "unread" | "groups" | "archived">("all");
   const [isSearching, setIsSearching] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNewGroupOpen, setIsNewGroupOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [mobileSubView, setMobileSubView] = useState<"chats" | "search" | "settings">("chats");
 
-  // Sidebar data
   const {
     searchResults,
     allUsers,
@@ -67,19 +59,13 @@ export default function Sidebar() {
     handleDeleteChat,
   } = useSidebar(searchQuery, filter);
 
-  // Close mobile sidebar when navigating to a chat
   useEffect(() => {
-    if (activeId && mode === "mobile") {
-      setMobileOpen(false);
-    }
+    if (activeId && mode === "mobile") setMobileOpen(false);
   }, [activeId, mode]);
 
-  // Close mobile sidebar on escape
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && mobileOpen) {
-        setMobileOpen(false);
-      }
+      if (e.key === "Escape" && mobileOpen) setMobileOpen(false);
     };
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
@@ -92,111 +78,18 @@ export default function Sidebar() {
     setIsSearching(false);
   };
 
-  // ─── Collapsed sidebar (tablet: 768-1023px) ───────────────────────────
-  if (mode === "tablet") {
-    return (
-      <>
-        <aside className="app-sidebar flex flex-col items-center py-3 gap-1 bg-[var(--sidebar-bg)] border-r border-[var(--sidebar-border)]">
-          {/* User avatar */}
-          <CollapsedSidebarAvatar onSettingsOpen={() => setIsSettingsOpen(true)} />
+  const hasChats = pinnedChats.length > 0 || otherChats.length > 0;
+  const showLoading = loadingChats && !isSearching;
+  const showEmpty = !hasChats && !isSearching && !loadingChats;
+  const showSearchResults = isSearching;
 
-          <div className="h-px bg-[var(--sidebar-border)] w-8 my-2" />
-
-          {/* Icon-only nav */}
-          <CollapsedIconButton
-            icon={<MessageSquare className="w-5 h-5" />}
-            label="Chats"
-            active={pathname === "/"}
-            onClick={() => {}}
-          />
-          <CollapsedIconButton
-            icon={<Search className="w-5 h-5" />}
-            label="Search"
-            active={isSearching}
-            onClick={() => setIsSearching(!isSearching)}
-          />
-          <CollapsedIconButton
-            icon={<Users className="w-5 h-5" />}
-            label="New Group"
-            onClick={() => setIsNewGroupOpen(true)}
-          />
-
-          <div className="flex-1" />
-
-          <CollapsedIconButton
-            icon={<Settings className="w-5 h-5" />}
-            label="Settings"
-            onClick={() => setIsSettingsOpen(true)}
-          />
-        </aside>
-
-        <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
-        <NewGroupModal isOpen={isNewGroupOpen} onClose={() => setIsNewGroupOpen(false)} />
-      </>
-    );
-  }
-
-  // ─── Desktop sidebar (>=1024px) ───────────────────────────────────────
-  if (mode === "desktop") {
-    const sidebarContent = (
-      <>
-        <SidebarProfile
-          onSettingsOpen={() => setIsSettingsOpen(true)}
-          onNewGroupOpen={() => setIsNewGroupOpen(true)}
-        />
-        <SidebarSearch
-          value={searchQuery}
-          onChange={(val) => {
-            setSearchQuery(val);
-            setIsSearching(val.length > 0);
-          }}
-          onClear={clearSearch}
-        />
-        {!isSearching && (
-          <SidebarFilters activeFilter={filter} onFilterChange={setFilter} />
-        )}
-        {!isSearching && allUsers.length > 0 && (
-          <OnlineUsers users={allUsers} />
-        )}
-        {!isSearching && <div className="h-px bg-[var(--sidebar-border)] mx-3" />}
-        <div className="flex-1 overflow-hidden flex flex-col">
-          {isSearching ? (
-            <SidebarSearchResults results={searchResults} activeId={activeId} />
-          ) : (
-            <SidebarChatList
-              pinnedChats={pinnedChats}
-              otherChats={otherChats}
-              activeId={activeId}
-              loading={loadingChats}
-              filter={filter}
-              onPin={handleTogglePin}
-              onMute={handleToggleMute}
-              onArchive={handleToggleArchive}
-              onDelete={handleDeleteChat}
-            />
-          )}
-        </div>
-      </>
-    );
-
-    return (
-      <>
-        <aside className="app-sidebar flex flex-col bg-[var(--sidebar-bg)] border-r border-[var(--sidebar-border)] shadow-[var(--elevation-1)]">
-          {sidebarContent}
-        </aside>
-        <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
-        <NewGroupModal isOpen={isNewGroupOpen} onClose={() => setIsNewGroupOpen(false)} />
-      </>
-    );
-  }
-
-  // ─── Mobile sidebar (<768px): hamburger + drawer ───────────────────────
-  const mobileSidebarContent = (
+  const sidebarContent = (
     <>
-      <SidebarProfile
+      <SidebarHeader
         onSettingsOpen={() => setIsSettingsOpen(true)}
         onNewGroupOpen={() => setIsNewGroupOpen(true)}
       />
+
       <SidebarSearch
         value={searchQuery}
         onChange={(val) => {
@@ -205,23 +98,29 @@ export default function Sidebar() {
         }}
         onClear={clearSearch}
       />
+
       {!isSearching && (
         <SidebarFilters activeFilter={filter} onFilterChange={setFilter} />
       )}
-      {!isSearching && allUsers.length > 0 && (
-        <OnlineUsers users={allUsers} />
-      )}
-      {!isSearching && <div className="h-px bg-[var(--sidebar-border)] mx-3" />}
+
       <div className="flex-1 overflow-hidden flex flex-col">
-        {isSearching ? (
-          <SidebarSearchResults results={searchResults} activeId={activeId} />
+        {showLoading && <ChatListSkeleton />}
+        {showEmpty && <SidebarEmptyState filter={filter} />}
+        {showSearchResults ? (
+          <ConversationList
+            chats={searchResults.chats}
+            activeId={activeId}
+            onPin={handleTogglePin}
+            onMute={handleToggleMute}
+            onArchive={handleToggleArchive}
+            onDelete={handleDeleteChat}
+            searchMode
+          />
         ) : (
-          <SidebarChatList
+          <ConversationList
             pinnedChats={pinnedChats}
             otherChats={otherChats}
             activeId={activeId}
-            loading={loadingChats}
-            filter={filter}
             onPin={handleTogglePin}
             onMute={handleToggleMute}
             onArchive={handleToggleArchive}
@@ -232,68 +131,86 @@ export default function Sidebar() {
     </>
   );
 
+  // Desktop
+  if (mode === "desktop") {
+    return (
+      <>
+        <aside className="app-sidebar flex flex-col bg-[var(--background)] border-r border-[var(--border-ds)]">
+          {sidebarContent}
+        </aside>
+        <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+        <NewGroupModal isOpen={isNewGroupOpen} onClose={() => setIsNewGroupOpen(false)} />
+      </>
+    );
+  }
+
+  // Tablet (collapsed)
+  if (mode === "tablet") {
+    return (
+      <>
+        <aside className="app-sidebar flex flex-col items-center py-3 gap-1 bg-[var(--background)] border-r border-[var(--border-ds)]">
+          <TabletAvatar onSettingsOpen={() => setIsSettingsOpen(true)} />
+          <div className="h-px bg-[var(--border-ds)] w-8 my-2" />
+          <TabletIconButton
+            icon={<MessageSquarePlus className="w-5 h-5" />}
+            label="New Chat"
+            onClick={() => setIsNewGroupOpen(true)}
+          />
+          <div className="flex-1" />
+          <TabletIconButton
+            icon={<Settings className="w-5 h-5" />}
+            label="Settings"
+            onClick={() => setIsSettingsOpen(true)}
+          />
+        </aside>
+        <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+        <NewGroupModal isOpen={isNewGroupOpen} onClose={() => setIsNewGroupOpen(false)} />
+      </>
+    );
+  }
+
+  // Mobile
   return (
     <>
-      {/* Hamburger button */}
       <button
-        onClick={() => setMobileOpen(!mobileOpen)}
-        className="fixed top-3 left-3 z-50 p-2.5 rounded-xl bg-[var(--sidebar-bg)] border border-[var(--sidebar-border)] shadow-lg md:hidden"
-        aria-label="Toggle sidebar"
+        onClick={() => setMobileOpen(true)}
+        className="fixed top-3 left-3 z-50 p-2.5 rounded-[var(--radius-ds)] bg-[var(--background)] border border-[var(--border-ds)] shadow-[var(--shadow-md)] md:hidden"
+        aria-label="Open menu"
       >
-        <motion.div
-          animate={mobileOpen ? "open" : "closed"}
-          className="w-5 h-4 flex flex-col justify-between"
-        >
-          <motion.span
-            variants={{
-              open: { rotate: 45, y: 6 },
-              closed: { rotate: 0, y: 0 },
-            }}
-            className="w-full h-0.5 bg-[var(--sidebar-text)] block origin-center"
-          />
-          <motion.span
-            variants={{
-              open: { opacity: 0 },
-              closed: { opacity: 1 },
-            }}
-            className="w-full h-0.5 bg-[var(--sidebar-text)] block"
-          />
-          <motion.span
-            variants={{
-              open: { rotate: -45, y: -6 },
-              closed: { rotate: 0, y: 0 },
-            }}
-            className="w-full h-0.5 bg-[var(--sidebar-text)] block origin-center"
-          />
-        </motion.div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
       </button>
 
-      {/* Overlay */}
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40 bg-black/40 md:hidden"
-            onClick={() => setMobileOpen(false)}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Drawer */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.aside
-            initial={{ x: "-100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "-100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed inset-y-0 left-0 z-50 w-[85vw] max-w-[360px] flex flex-col bg-[var(--sidebar-bg)] shadow-2xl md:hidden"
-          >
-            {mobileSidebarContent}
-          </motion.aside>
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+              onClick={() => setMobileOpen(false)}
+            />
+            <motion.aside
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="fixed inset-y-0 left-0 z-50 w-full max-w-[400px] flex flex-col bg-[var(--background)] shadow-[var(--shadow-2xl)] md:hidden"
+            >
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-ds)]">
+                <h2 className="text-lg font-semibold text-[var(--foreground)]">Chats</h2>
+                <button
+                  onClick={() => setMobileOpen(false)}
+                  className="p-2 rounded-[var(--radius-ds)] hover:bg-[var(--muted)] text-[var(--muted-foreground)] transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-hidden flex flex-col">
+                {sidebarContent}
+              </div>
+            </motion.aside>
+          </>
         )}
       </AnimatePresence>
 
@@ -303,61 +220,48 @@ export default function Sidebar() {
   );
 }
 
-// ─── Collapsed sidebar sub-components ──────────────────────────────────────
+// Tablet collapsed sub-components
+import { Settings } from "lucide-react";
+import { useSelector as useReduxSelector } from "react-redux";
 
-function CollapsedSidebarAvatar({ onSettingsOpen }: { onSettingsOpen: () => void }) {
-  const { user } = useSelector((state: RootState) => state.auth);
+function TabletAvatar({ onSettingsOpen }: { onSettingsOpen: () => void }) {
+  const { user } = useReduxSelector((state: RootState) => state.auth);
   const initials = user?.name
     ? user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
     : "??";
 
   return (
-    <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
+    <button
       onClick={onSettingsOpen}
-      className="relative w-10 h-10 shrink-0 rounded-[var(--radius-xl)] overflow-hidden ring-2 ring-[var(--border-default)] hover:ring-[var(--accent)] transition-all duration-200"
+      className="relative w-10 h-10 shrink-0 rounded-full overflow-hidden ring-2 ring-[var(--border-ds)] hover:ring-[var(--primary)] transition-all duration-200"
     >
       {user?.avatar && user.avatar.trim() ? (
-        <img
-          src={user.avatar}
-          alt={user.name || "User"}
-          className="w-full h-full object-cover"
-        />
+        <img src={user.avatar} alt={user.name || "User"} className="w-full h-full object-cover" />
       ) : (
         <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
           {initials}
         </div>
       )}
-    </motion.button>
+    </button>
   );
 }
 
-function CollapsedIconButton({
+function TabletIconButton({
   icon,
   label,
-  active,
   onClick,
 }: {
   icon: React.ReactNode;
   label: string;
-  active?: boolean;
   onClick: () => void;
 }) {
   return (
-    <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
+    <button
       onClick={onClick}
       title={label}
-      className={cn(
-        "w-10 h-10 flex items-center justify-center rounded-[var(--radius-lg)] transition-all duration-200",
-        active
-          ? "bg-[var(--accent-light)] text-[var(--accent)]"
-          : "text-[var(--sidebar-text-secondary)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--sidebar-text)]"
-      )}
+      className="w-10 h-10 flex items-center justify-center rounded-[var(--radius-ds)] text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-all duration-200"
     >
       {icon}
-    </motion.button>
+    </button>
   );
 }

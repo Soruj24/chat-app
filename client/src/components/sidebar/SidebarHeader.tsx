@@ -1,89 +1,77 @@
 "use client";
 
-import Image from "next/image";
-import { Settings, Edit, Sun, Moon } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { NotificationBell } from "@/components/ui/NotificationBell";
-import { OnlineIndicator } from "@/components/chat/message/OnlineIndicator";
+import { useTheme } from "next-themes";
+import { useState, useEffect } from "react";
+import { Settings, Sun, Moon, PenSquare } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SidebarHeaderProps {
-  mounted: boolean;
-  theme: string | undefined;
-  setTheme: (theme: string) => void;
   onSettingsOpen: () => void;
   onNewGroupOpen: () => void;
 }
 
-export function SidebarHeader({ mounted, theme, setTheme, onSettingsOpen, onNewGroupOpen }: SidebarHeaderProps) {
+export function SidebarHeader({ onSettingsOpen, onNewGroupOpen }: SidebarHeaderProps) {
   const { user } = useSelector((state: RootState) => state.auth);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   const initials = user?.name
-    ? user.name
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
+    ? user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
     : "??";
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <div className="relative w-10 h-10 group cursor-pointer" onClick={onSettingsOpen}>
+    <div className="px-4 py-3 flex items-center justify-between border-b border-[var(--border-ds)]">
+      {/* Left: Logo + User */}
+      <div className="flex items-center gap-3 min-w-0">
+        <button
+          onClick={onSettingsOpen}
+          className="relative w-9 h-9 shrink-0 rounded-full overflow-hidden ring-2 ring-[var(--border-ds)] hover:ring-[var(--primary)] transition-all duration-200"
+        >
           {user?.avatar && user.avatar.trim() ? (
-            <Image
-              src={user.avatar}
-              alt={user.name || "User"}
-              fill
-              unoptimized
-              className="rounded-full object-cover transition-transform group-hover:scale-105"
-            />
+            <img src={user.avatar} alt={user.name || "User"} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm transition-transform group-hover:scale-105">
+            <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-xs">
               {initials}
             </div>
           )}
-          <div className="absolute -bottom-0.5 -right-0.5">
-            <OnlineIndicator isOnline={true} size="sm" />
-          </div>
-        </div>
-        <div className="flex flex-col">
-          <h1 className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-none mb-1">
-            {user?.username || "Guest User"}
+          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-[var(--success)] rounded-full border-2 border-[var(--background)]" />
+        </button>
+        <div className="min-w-0">
+          <h1 className="text-sm font-semibold text-[var(--foreground)] truncate leading-tight">
+            {user?.name || user?.username || "Guest"}
           </h1>
-          <div className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-            <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500">Online</span>
-          </div>
+          <p className="text-[11px] text-[var(--muted-foreground)] truncate">
+            @{user?.username || "user"}
+          </p>
         </div>
       </div>
-      <div className="flex items-center gap-0.5">
-        <NotificationBell />
+
+      {/* Right: Actions */}
+      <div className="flex items-center gap-1 shrink-0">
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all duration-150 text-gray-400 dark:text-gray-500"
+          className="p-2 rounded-[var(--radius-ds)] hover:bg-[var(--muted)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all duration-200"
           title="Toggle theme"
         >
-          {!mounted ? (
-            <div className="w-5 h-5" />
-          ) : theme === "dark" ? (
-            <Sun className="w-4.5 h-4.5" />
-          ) : (
-            <Moon className="w-4.5 h-4.5" />
-          )}
+          {!mounted ? <div className="w-4 h-4" /> : theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </button>
         <button
           onClick={onSettingsOpen}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all duration-150 text-gray-400 dark:text-gray-500"
+          className="p-2 rounded-[var(--radius-ds)] hover:bg-[var(--muted)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all duration-200"
+          title="Settings"
         >
-          <Settings className="w-4.5 h-4.5" />
+          <Settings className="w-4 h-4" />
         </button>
         <button
           onClick={onNewGroupOpen}
-          className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-all duration-150 active:scale-95 shadow-sm shadow-blue-500/20"
+          className="p-2 rounded-[var(--radius-ds)] bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-[var(--primary-foreground)] transition-all duration-200 shadow-[var(--shadow-sm)]"
+          title="New conversation"
         >
-          <Edit className="w-4.5 h-4.5" />
+          <PenSquare className="w-4 h-4" />
         </button>
       </div>
     </div>
