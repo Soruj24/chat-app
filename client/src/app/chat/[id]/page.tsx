@@ -412,6 +412,7 @@ export default function ChatPage() {
           setInputValue((prev) => prev + emoji);
           setShowEmojiPicker(false);
         }}
+        onClose={() => setShowEmojiPicker(false)}
       />
 
       <MessageInput
@@ -427,6 +428,46 @@ export default function ChatPage() {
         showEmojiPicker={showEmojiPicker}
         setShowEmojiPicker={setShowEmojiPicker}
         themeColor={chatThemeColor}
+        users={chat?.members || []}
+        onCommand={(command) => {
+          switch (command) {
+            case "image":
+            case "file": {
+              const input = document.createElement("input");
+              input.type = "file";
+              input.accept = command === "image" ? "image/*" : "*/*";
+              input.onchange = (e) => {
+                const file = (e.target as HTMLInputElement).files?.[0];
+                if (file) handleSendMedia(file);
+              };
+              input.click();
+              break;
+            }
+            case "location":
+              handleSendLocation();
+              break;
+            case "contact":
+              setIsContactPickerOpen(true);
+              break;
+            case "gif":
+              setShowEmojiPicker(false);
+              break;
+            case "emoji":
+              setShowEmojiPicker(true);
+              break;
+            case "bold":
+              setInputValue((prev) => `**${prev}**`);
+              break;
+            case "italic":
+              setInputValue((prev) => `_${prev}_`);
+              break;
+            case "code":
+              setInputValue((prev) => `\`${prev}\``);
+              break;
+            default:
+              break;
+          }
+        }}
       />
 
       <ContactPickerModal

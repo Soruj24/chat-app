@@ -1,14 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { User, MessageSquare } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { addChat, setActiveChat } from "@/store/slices/chatSlice";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-
 import { User as UserType } from "@/lib/types";
+import { cn, getUserColor } from "@/lib/utils";
 
 interface UserSearchResultProps {
   user: UserType;
@@ -17,9 +17,7 @@ interface UserSearchResultProps {
 export function UserSearchResult({ user }: UserSearchResultProps) {
   const dispatch = useDispatch();
   const router = useRouter();
-  const { token, user: currentUser } = useSelector(
-    (state: RootState) => state.auth,
-  );
+  const { token, user: currentUser } = useSelector((state: RootState) => state.auth);
   const [loading, setLoading] = useState(false);
 
   const handleStartChat = async () => {
@@ -41,20 +39,15 @@ export function UserSearchResult({ user }: UserSearchResultProps) {
 
       if (response.ok) {
         const chatData = await response.json();
-
         const chatId = chatData._id || chatData.id;
         const participants = chatData.participants || [];
-
-        // Find other participant to get the correct name/avatar
         const otherParticipant = participants.find(
-          (p: UserType) =>
-            p._id !== currentUser?.id && p.id !== currentUser?.id,
+          (p: UserType) => p._id !== currentUser?.id && p.id !== currentUser?.id
         );
 
         const mappedChat = {
           id: chatId,
-          name:
-            otherParticipant?.name || otherParticipant?.username || user.name,
+          name: otherParticipant?.name || otherParticipant?.username || user.name,
           avatar: otherParticipant?.avatar || user.avatar,
           type: chatData.type,
           lastMessage: chatData.lastMessage,
@@ -62,16 +55,10 @@ export function UserSearchResult({ user }: UserSearchResultProps) {
           otherParticipantId: otherParticipant?._id || otherParticipant?.id,
         };
 
-        // Add to local chats if not already there and set active
         dispatch(addChat(mappedChat));
         dispatch(setActiveChat(mappedChat.id));
         if (mappedChat.id) {
           router.push(`/chat/${mappedChat.id}`);
-        } else {
-          console.warn(
-            "Attempted to navigate to chat with missing id",
-            mappedChat,
-          );
         }
       }
     } catch (error) {
@@ -84,30 +71,40 @@ export function UserSearchResult({ user }: UserSearchResultProps) {
   return (
     <div
       onClick={handleStartChat}
-      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors group"
+      className={cn(
+        "flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl cursor-pointer transition-all duration-150 group",
+        "hover:bg-[var(--sidebar-hover)]"
+      )}
     >
       <div className="relative w-10 h-10 shrink-0">
-        <Image
-          src={
-            user.avatar ||
-            "https://ui-avatars.com/api/?name=" +
-              encodeURIComponent(user.name || "User")
-          }
-          alt={user.name || "User avatar"}
-          fill
-          unoptimized
-          className="rounded-full object-cover"
-        />
+        {user.avatar && user.avatar.trim() ? (
+          <Image
+            src={user.avatar}
+            alt={user.name || "User avatar"}
+            fill
+            unoptimized
+            className="rounded-full object-cover"
+          />
+        ) : (
+          <div
+            className={cn(
+              "w-full h-full rounded-full flex items-center justify-center text-white text-sm font-bold bg-gradient-to-br",
+              getUserColor(user.name)
+            )}
+          >
+            {user.name.charAt(0).toUpperCase()}
+          </div>
+        )}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between">
-          <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">
-            {user.name}
-          </h4>
-          <MessageSquare className="w-4 h-4 text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-        </div>
-        <p className="text-xs text-gray-500 truncate">@{user.username}</p>
+        <h4 className="text-sm font-semibold text-[var(--sidebar-text)] truncate">
+          {user.name}
+        </h4>
+        <p className="text-xs text-[var(--sidebar-text-secondary)] truncate">
+          @{user.username}
+        </p>
       </div>
+      <MessageSquare className="w-4 h-4 text-[var(--color-primary)] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
     </div>
   );
 }

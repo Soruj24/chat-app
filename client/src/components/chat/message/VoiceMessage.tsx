@@ -1,7 +1,7 @@
 "use client";
 
-import { Play, Pause, Loader2 } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { Play, Pause } from "lucide-react";
+import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useAudioWaveform } from "@/hooks/useAudioWaveform";
 
@@ -18,13 +18,12 @@ export function VoiceMessage({ url, duration, messageId, isMe, themeColor }: Voi
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState("0:00");
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  
+
   const BARS_COUNT = 32;
   const { waveform, loading } = useAudioWaveform(url, BARS_COUNT);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
-    
     if (isPlaying) {
       audioRef.current.pause();
     } else {
@@ -37,11 +36,12 @@ export function VoiceMessage({ url, duration, messageId, isMe, themeColor }: Voi
     if (audioRef.current) {
       const current = audioRef.current.currentTime;
       const total = audioRef.current.duration;
-      setProgress((current / total) * 100);
-      
+      if (total > 0) {
+        setProgress((current / total) * 100);
+      }
       const mins = Math.floor(current / 60);
       const secs = Math.floor(current % 60);
-      setCurrentTime(`${mins}:${secs.toString().padStart(2, '0')}`);
+      setCurrentTime(`${mins}:${secs.toString().padStart(2, "0")}`);
     }
   };
 
@@ -51,46 +51,50 @@ export function VoiceMessage({ url, duration, messageId, isMe, themeColor }: Voi
     setCurrentTime("0:00");
   };
 
+  const accentColor = isMe
+    ? "rgba(255,255,255,0.9)"
+    : themeColor || "#3b82f6";
+
+  const waveformColor = isMe ? "rgba(255,255,255,0.4)" : themeColor || "#3b82f6";
+  const waveformActiveColor = isMe ? "rgba(255,255,255,0.9)" : themeColor || "#3b82f6";
+
   return (
-    <div className="py-2 px-3 flex items-center gap-3 min-w-[260px]">
+    <div className="py-2.5 px-3 flex items-center gap-3 min-w-[260px]">
       {url && (
-        <audio 
-          ref={audioRef} 
-          src={url} 
-          onTimeUpdate={onTimeUpdate} 
+        <audio
+          ref={audioRef}
+          src={url}
+          onTimeUpdate={onTimeUpdate}
           onEnded={onEnded}
-          className="hidden" 
+          className="hidden"
         />
       )}
-      
-      <button 
+
+      <button
         onClick={togglePlay}
         disabled={!url}
         className={cn(
-          "w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-90 shrink-0",
-          isMe ? "bg-white/30 hover:bg-white/40" : "bg-[#28a8e8] hover:bg-[#1a99e0] text-white"
+          "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90 shrink-0 shadow-md",
+          isMe ? "bg-white/20 hover:bg-white/30 text-white" : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
         )}
-        style={!isMe && themeColor ? { backgroundColor: themeColor } : {}}
       >
         {isPlaying ? (
           <Pause className="w-4 h-4 fill-current" />
         ) : (
-          <Play className="w-4 h-4 fill-current ml-0.5" />
+          <Play className="w-4 h-4 fill-current ml-0.5" style={{ color: isMe ? "white" : accentColor }} />
         )}
       </button>
-      
-      <div className="flex-1 flex flex-col gap-1">
-        <div className="h-8 flex items-center gap-px relative">
+
+      <div className="flex-1 flex flex-col gap-1.5">
+        {/* Waveform */}
+        <div className="h-8 flex items-center gap-px">
           {loading ? (
             <div className="flex items-center gap-px opacity-30">
-              {[...Array(BARS_COUNT)].map((_, i) => (
+              {Array.from({ length: BARS_COUNT }).map((_, i) => (
                 <div
                   key={i}
-                  className={cn(
-                    "w-1 rounded-full bg-current animate-pulse",
-                    isMe ? "text-white" : "text-[#28a8e8]"
-                  )}
-                  style={{ height: `${4 + (i * 17 % 24)}px` }}
+                  className={cn("w-[3px] rounded-full animate-pulse", isMe ? "bg-white/30" : "bg-gray-300 dark:bg-gray-600")}
+                  style={{ height: `${4 + (i * 17) % 24}px` }}
                 />
               ))}
             </div>
@@ -102,25 +106,24 @@ export function VoiceMessage({ url, duration, messageId, isMe, themeColor }: Voi
               return (
                 <div
                   key={i}
-                  className={cn(
-                    "w-[3px] rounded-full transition-all duration-150",
-                    isMe ? "bg-white" : "bg-[#28a8e8]",
-                    !isPlayed && "opacity-35"
-                  )}
-                  style={{ 
+                  className="w-[3px] rounded-full transition-colors duration-100"
+                  style={{
                     height: `${Math.max(4, peak * 28)}px`,
-                    ...(!isMe && themeColor ? { backgroundColor: themeColor } : {})
+                    backgroundColor: isPlayed ? waveformActiveColor : waveformColor,
+                    opacity: isPlayed ? 1 : 0.35,
                   }}
                 />
               );
             })
           )}
         </div>
+
+        {/* Time */}
         <div className="flex justify-between items-center">
-          <span className={cn(
-            "text-[10px] font-medium tabular-nums",
-            isMe ? "text-[#c4e9c2]" : "text-[#8e8e93]"
-          )}>
+          <span
+            className="text-[10px] font-medium tabular-nums"
+            style={{ color: isMe ? "rgba(255,255,255,0.6)" : undefined }}
+          >
             {isPlaying ? currentTime : duration}
           </span>
         </div>

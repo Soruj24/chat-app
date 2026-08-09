@@ -520,21 +520,215 @@ const generateMockUsers = async (): Promise<any[]> => {
   return users;
 };
 
+// CHAT GENERATION
+const generateMockChats = (users: any[]): any[] => {
+  const chats: any[] = [];
+  const usedPairs = new Set<string>();
+
+  // Private chats between regular users
+  const regularUsers = users.filter(
+    (u) => u.role === UserRole.USER || u.role === UserRole.PREMIUM
+  );
+  const NUM_PRIVATE_CHATS = 30;
+
+  for (let i = 0; i < NUM_PRIVATE_CHATS && i < regularUsers.length - 1; i++) {
+    const user1 = regularUsers[i];
+    const user2 = regularUsers[(i + 1) % regularUsers.length];
+    const pairKey = [user1._id.toString(), user2._id.toString()]
+      .sort()
+      .join(":");
+    if (usedPairs.has(pairKey)) continue;
+    usedPairs.add(pairKey);
+
+    chats.push({
+      _id: new mongoose.Types.ObjectId(),
+      participants: [user1._id, user2._id],
+      type: "private",
+      createdAt: faker.date.past({ years: 1 }),
+      updatedAt: faker.date.recent(),
+    });
+  }
+
+  // Some extra private chats with admins
+  for (const admin of users.filter((u) => u.role === UserRole.ADMIN || u.role === UserRole.SUPER_ADMIN)) {
+    for (let i = 0; i < 3; i++) {
+      const otherUser = faker.helpers.arrayElement(regularUsers);
+      const pairKey = [admin._id.toString(), otherUser._id.toString()]
+        .sort()
+        .join(":");
+      if (usedPairs.has(pairKey)) continue;
+      usedPairs.add(pairKey);
+      chats.push({
+        _id: new mongoose.Types.ObjectId(),
+        participants: [admin._id, otherUser._id],
+        type: "private",
+        createdAt: faker.date.past({ years: 1 }),
+        updatedAt: faker.date.recent(),
+      });
+    }
+  }
+
+  // Group chats
+  const NUM_GROUPS = 5;
+  const groupNames = [
+    "Tech Talk",
+    "Gaming Squad",
+    "Book Club",
+    "Travel Buddies",
+    "Music Lovers",
+  ];
+
+  for (let i = 0; i < NUM_GROUPS; i++) {
+    const memberCount = faker.number.int({ min: 3, max: 8 });
+    const members = faker.helpers.arrayElements(regularUsers, memberCount);
+    const admin = faker.helpers.arrayElement(members);
+
+    chats.push({
+      _id: new mongoose.Types.ObjectId(),
+      participants: members.map((m) => m._id),
+      type: "group",
+      name: groupNames[i] || faker.word.words(2),
+      admin: admin._id,
+      description: faker.lorem.sentence(),
+      createdAt: faker.date.past({ years: 1 }),
+      updatedAt: faker.date.recent(),
+    });
+  }
+
+  return chats;
+};
+
+// MESSAGE GENERATION
+const generateMockMessages = (chats: any[], users: any[]): any[] => {
+  const messages: any[] = [];
+  const messageTexts = [
+    "Hey! How are you?",
+    "Good morning! Hope you're doing well.",
+    "Did you see the latest update?",
+    "I'll send you the files shortly.",
+    "Can we meet tomorrow?",
+    "Thanks for your help!",
+    "That's a great idea!",
+    "Let me check and get back to you.",
+    "I'm running a bit late.",
+    "Sure, sounds good!",
+    "Could you please review this?",
+    "Awesome, thank you!",
+    "See you there!",
+    "I agree with you.",
+    "Let's discuss this in the meeting.",
+    "Please find the attached document.",
+    "👍",
+    "😊",
+    "🎉",
+    "Great work!",
+    "I'll be there in 10 minutes.",
+    "Can you share the link?",
+    "Perfect, thanks!",
+    "No worries, take your time.",
+    "Happy birthday! 🎂",
+    "Welcome to the team!",
+    "The project deadline is next week.",
+    "I've completed the task.",
+    "Please review the pull request.",
+    "That makes sense.",
+    "Let me know if you need anything.",
+    "Just following up on this.",
+    "I appreciate your feedback.",
+    "Have a great weekend!",
+    "Looking forward to it.",
+    "That's hilarious! 😂",
+    "Absolutely! Count me in.",
+    "I'll check and confirm.",
+    "On my way!",
+    "Good night!",
+  ];
+
+  for (const chat of chats) {
+    const numMessages = faker.number.int({ min: 5, max: 20 });
+    const participants = chat.participants;
+    let lastMessage: any = null;
+
+    for (let i = 0; i < numMessages; i++) {
+      const sender = faker.helpers.arrayElement(participants);
+      const text = faker.helpers.arrayElement(messageTexts);
+      const createdAt = faker.date.recent({ days: 30 });
+      const statuses = ["sent", "delivered", "read"] as const;
+
+      const message: any = {
+        _id: new mongoose.Types.ObjectId(),
+        sender,
+        chatId: chat._id,
+        content: text,
+        text,
+        type: "text" as const,
+        status: faker.helpers.arrayElement(statuses),
+        reactions: [],
+        readBy: [],
+        deletedBy: [],
+        isDeletedForEveryone: false,
+        createdAt,
+        updatedAt: createdAt,
+      };
+
+      // Some messages have reactions
+      if (faker.datatype.boolean(0.3)) {
+        const reactors = faker.helpers.arrayElements(
+          participants,
+          faker.number.int({ min: 1, max: 3 })
+        );
+        message.reactions = reactors.map((r: any) => ({
+          userId: r._id || r,
+          emoji: faker.helpers.arrayElement(["👍", "❤️", "😂", "🎉", "😊"]),
+        }));
+        message.readBy = reactors.map((r: any) => r._id || r);
+      }
+
+      // Some messages are read by all participants
+      if (faker.datatype.boolean(0.4)) {
+        message.readBy = participants.map((p: any) => p._id || p);
+        message.status = "read";
+      }
+
+      // Some messages reply to previous ones
+      if (lastMessage && faker.datatype.boolean(0.2)) {
+        message.replyTo = lastMessage._id;
+      }
+
+      // Some messages are forwarded
+      if (faker.datatype.boolean(0.1)) {
+        message.isForwarded = true;
+      }
+
+      messages.push(message);
+      lastMessage = message;
+    }
+  }
+
+  return messages;
+};
+
 // MAIN GENERATION FUNCTION
 const generateMockData = async () => {
   try {
-    console.log("🚀 Starting user seeding process...");
+    console.log("🚀 Starting data seeding process...");
 
-    // Generate users
     const users = await generateMockUsers();
-
     console.log(`✅ Generated ${users.length} users`);
+
+    const chats = generateMockChats(users);
+    console.log(`✅ Generated ${chats.length} chats`);
+
+    const messages = generateMockMessages(chats, users);
+    console.log(`✅ Generated ${messages.length} messages`);
 
     return {
       users,
+      chats,
+      messages,
     };
   } catch (error) {
-    console.error("❌ User data generation failed:", error);
+    console.error("❌ Data generation failed:", error);
     throw error;
   }
 };

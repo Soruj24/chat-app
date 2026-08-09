@@ -2,107 +2,148 @@
 
 import { ChatListItem } from "../chat/ChatListItem";
 import { ChatListSkeleton } from "./ChatListSkeleton";
-import { UserSearchResult } from "./UserSearchResult";
-import { Ghost, Users } from "lucide-react";
-
-import { IChat, User } from "@/lib/types";
+import { Archive } from "lucide-react";
+import { IChat } from "@/lib/types";
+import { motion } from "framer-motion";
+import { EmptyState, noChats, noArchivedChats } from "@/components/empty-states";
 
 interface SidebarChatListProps {
   pinnedChats: IChat[];
   otherChats: IChat[];
-  allUsers?: User[];
   activeId?: string | null;
   loading?: boolean;
+  filter: string;
   onPin: (id: string) => void;
   onMute: (id: string) => void;
   onArchive: (id: string) => void;
   onDelete: (id: string) => void;
 }
 
-export function SidebarChatList({ 
-  pinnedChats, 
-  otherChats, 
-  allUsers = [],
+export function SidebarChatList({
+  pinnedChats,
+  otherChats,
   activeId,
   loading = false,
+  filter,
   onPin,
   onMute,
   onArchive,
-  onDelete
+  onDelete,
 }: SidebarChatListProps) {
   const hasChats = pinnedChats.length > 0 || otherChats.length > 0;
-  const hasUsers = allUsers.length > 0;
 
   if (loading) {
-    // show skeleton while chats are loading
     return <ChatListSkeleton />;
   }
 
-  if (!hasChats && !hasUsers) {
+  if (!hasChats) {
+    const preset = filter === "archived" ? noArchivedChats() : noChats();
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-500">
-        <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mb-6">
-          <Ghost className="w-10 h-10 text-gray-300 dark:text-gray-600" />
-        </div>
-        <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-1">No chats found</h3>
-        <p className="text-sm text-gray-500">Try changing your filters or start a new conversation</p>
-      </div>
+      <EmptyState
+        illustration={preset.illustration}
+        title={preset.title}
+        description={preset.description}
+        primaryAction={preset.primaryAction}
+        secondaryAction={preset.secondaryAction}
+        compact
+      />
     );
   }
 
   return (
-    <div className="divide-y divide-gray-50 dark:divide-gray-800/30">
+    <div className="flex-1 overflow-y-auto custom-scrollbar px-1">
+      {/* Pinned Section */}
       {pinnedChats.length > 0 && (
-        <div className="pb-2">
-          <div className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
-            Pinned
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mb-1"
+        >
+          <div className="px-3 py-2 flex items-center gap-2">
+            <Pin className="w-3 h-3 text-[var(--sidebar-text-muted)] rotate-45" />
+            <span className="text-[10px] font-bold text-[var(--sidebar-text-muted)] uppercase tracking-widest">
+              Pinned
+            </span>
+            <span className="text-[10px] font-medium text-[var(--sidebar-text-muted)]/60">
+              {pinnedChats.length}
+            </span>
           </div>
-          {pinnedChats.map((chat) => (
-            <ChatListItem 
-              key={`pinned-${chat.id}`} 
-              chat={chat} 
-              isActive={activeId === chat.id}
-              onPin={onPin}
-              onMute={onMute}
-              onArchive={onArchive}
-              onDelete={onDelete}
-            />
+          {pinnedChats.map((chat, index) => (
+            <motion.div
+              key={`pinned-${chat.id}`}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.02 }}
+            >
+              <ChatListItem
+                chat={chat}
+                isActive={activeId === chat.id}
+                onPin={onPin}
+                onMute={onMute}
+                onArchive={onArchive}
+                onDelete={onDelete}
+              />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
-      <div>
-        {pinnedChats.length > 0 && otherChats.length > 0 && (
-          <div className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-            All Messages
-          </div>
-        )}
-        {otherChats.map((chat) => (
-          <ChatListItem 
-            key={`other-${chat.id}`} 
-            chat={chat} 
-            isActive={activeId === chat.id}
-            onPin={onPin}
-            onMute={onMute}
-            onArchive={onArchive}
-            onDelete={onDelete}
-          />
-        ))}
-      </div>
-
-      {/* All Users Section */}
-      {allUsers.length > 0 && (
-        <div className="pt-2">
-          <div className="px-4 py-2 text-[10px] font-black text-blue-500 dark:text-blue-400 uppercase tracking-widest flex items-center gap-2">
-            <Users className="w-3 h-3" />
-            All Users
-          </div>
-          {allUsers.map((user) => (
-            <UserSearchResult key={`user-${user.id}`} user={user} />
+      {/* Recent/All Section */}
+      {otherChats.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mb-1"
+        >
+          {pinnedChats.length > 0 && (
+            <div className="px-3 py-2 flex items-center gap-2">
+              <span className="text-[10px] font-bold text-[var(--sidebar-text-muted)] uppercase tracking-widest">
+                {filter === "archived" ? "Archived" : "Recent"}
+              </span>
+              <span className="text-[10px] font-medium text-[var(--sidebar-text-muted)]/60">
+                {otherChats.length}
+              </span>
+            </div>
+          )}
+          {otherChats.map((chat, index) => (
+            <motion.div
+              key={`other-${chat.id}`}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.02 }}
+            >
+              <ChatListItem
+                chat={chat}
+                isActive={activeId === chat.id}
+                onPin={onPin}
+                onMute={onMute}
+                onArchive={onArchive}
+                onDelete={onDelete}
+              />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
     </div>
+  );
+}
+
+function Pin(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <line x1="12" y1="17" x2="12" y2="22" />
+      <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z" />
+    </svg>
   );
 }

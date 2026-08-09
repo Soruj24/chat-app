@@ -13,8 +13,11 @@ interface MessageHeaderProps {
 }
 
 export function MessageHeader({ message, isMe, showSenderName, themeColor }: MessageHeaderProps) {
-  const hasHeader = (showSenderName && message.senderName && !isMe) || message.replyTo || message.isForwarded;
-  
+  const hasHeader =
+    (showSenderName && message.senderName && !isMe) ||
+    message.replyTo ||
+    message.isForwarded;
+
   if (!hasHeader) return null;
 
   return (

@@ -1,32 +1,48 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { forwardRef, useCallback } from "react";
+import { cn } from "@/lib/utils";
 
 interface TextInputProps {
-  textareaRef: React.RefObject<HTMLTextAreaElement>;
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  onKeyDown: (e: React.KeyboardEvent) => void;
+  onPaste?: (e: React.ClipboardEvent) => void;
+  placeholder?: string;
 }
 
-export function TextInput({
-  textareaRef,
-  value,
-  onChange,
-  onKeyDown
-}: TextInputProps) {
-  return (
-    <motion.div key="input" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative">
-      <textarea
-        ref={textareaRef}
-        rows={1}
-        placeholder="Message"
-        value={value}
-        onChange={onChange}
-        onKeyDown={onKeyDown}
-        className="w-full bg-transparent rounded-xl px-3.5 py-2 text-[14px] focus:outline-none resize-none max-h-32 text-[#000000] dark:text-[#ffffff] placeholder:text-[#8e8e93] transition-all duration-200 custom-scrollbar overflow-y-auto"
-        suppressContentEditableWarning
-      />
-    </motion.div>
-  );
-}
+export const TextInput = forwardRef<HTMLTextAreaElement, TextInputProps>(
+  function TextInput({ textareaRef, value, onChange, onKeyDown, onPaste, placeholder }, _) {
+    const handleInput = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      onChange(e);
+      // Auto-resize: reset to auto then set to scrollHeight
+      const textarea = e.target;
+      textarea.style.height = "auto";
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`;
+    }, [onChange]);
+
+    return (
+      <div className="relative flex-1">
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={handleInput}
+          onKeyDown={onKeyDown}
+          onPaste={onPaste}
+          placeholder={placeholder || "Type a message..."}
+          rows={1}
+          className={cn(
+            "w-full bg-transparent text-[14px] leading-relaxed",
+            "px-4 py-3 resize-none",
+            "focus:outline-none",
+            "placeholder:text-[var(--composer-text-muted)]",
+            "text-[var(--composer-text)]",
+            "max-h-40 min-h-[44px]"
+          )}
+          style={{ height: "auto" }}
+        />
+      </div>
+    );
+  }
+);

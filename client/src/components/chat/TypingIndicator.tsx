@@ -1,93 +1,50 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store/store";
-import { socketService } from "@/lib/socket/socket-client";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { spring, fadeUp } from "@/lib/animations";
 
 interface TypingIndicatorProps {
-  chatId?: string;
   userName?: string;
   themeColor?: string;
 }
 
-export function TypingIndicator({ chatId, userName, themeColor }: TypingIndicatorProps) {
-  const { user } = useSelector((state: RootState) => state.auth);
-  const [typingUsers, setTypingUsers] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (!chatId || !user?.id) return;
-
-    const handleTyping = ({ chatId: typingChatId, userId, isTyping }: { chatId: string; userId: string; isTyping: boolean }) => {
-      if (typingChatId === chatId && userId !== user.id) {
-        if (isTyping) {
-          setTypingUsers(prev => prev.includes(userId) ? prev : [...prev, userId]);
-        } else {
-          setTypingUsers(prev => prev.filter(id => id !== userId));
-        }
-      }
-    };
-
-    socketService.on("user-typing", handleTyping);
-
-    return () => {
-      socketService.off("user-typing", handleTyping);
-    };
-  }, [chatId, user?.id]);
-
-  const displayName = userName || (typingUsers.length > 0 ? typingUsers.join(", ") : null);
-  
-  if (!displayName) return null;
-
-  const message = userName ? `${userName} is typing...` : 
-    typingUsers.length === 1 ? `${typingUsers[0]} is typing...` : 
-    `${typingUsers.length} users are typing...`;
+export function TypingIndicator({ userName, themeColor }: TypingIndicatorProps) {
+  if (!userName) return null;
 
   return (
-    <div className="flex items-center gap-1 px-3 py-1 text-xs text-[#8e8e93]">
-      <div className="flex gap-0.5">
-        <span className="w-1.5 h-1.5 bg-[#28a8e8] rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-        <span className="w-1.5 h-1.5 bg-[#28a8e8] rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-        <span className="w-1.5 h-1.5 bg-[#28a8e8] rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      exit="hidden"
+      variants={fadeUp}
+      transition={spring.gentle}
+      className="flex items-end gap-3 px-4 py-2"
+    >
+      <div className="flex items-center gap-2 px-4 py-2.5 rounded-[var(--radius-2xl)] rounded-bl-[var(--radius-sm)] bg-[var(--bg-elevated)] border border-[var(--border-light)] shadow-[var(--shadow-sm)]">
+        <div className="flex items-center gap-[3px]">
+          {[0, 1, 2].map((i) => (
+            <motion.span
+              key={i}
+              className="w-[6px] h-[6px] rounded-[var(--radius-full)]"
+              style={{ backgroundColor: themeColor || "var(--fg-tertiary)" }}
+              animate={{ 
+                y: [0, -5, 0],
+                opacity: [0.5, 1, 0.5],
+              }}
+              transition={{
+                duration: 0.7,
+                repeat: Infinity,
+                delay: i * 0.12,
+                ease: "easeInOut",
+              }}
+            />
+          ))}
+        </div>
+        <span className="text-xs text-[var(--fg-tertiary)] ml-1">
+          {userName}
+        </span>
       </div>
-      <span className="ml-1 italic">{message}</span>
-    </div>
+    </motion.div>
   );
-}
-
-// Hook for sending typing events
-export function useTypingIndicator(chatId: string) {
-  const [isTyping, setIsTyping] = useState(false);
-  const typingTimeoutRef: React.RefObject<NodeJS.Timeout | null> = { current: null };
-
-  const startTyping = useCallback(() => {
-    if (!chatId) return;
-    
-    socketService.sendTyping(chatId, true);
-    setIsTyping(true);
-
-    // Clear previous timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-
-    // Stop typing after 3 seconds
-    typingTimeoutRef.current = setTimeout(() => {
-      socketService.sendTyping(chatId, false);
-      setIsTyping(false);
-    }, 3000);
-  }, [chatId]);
-
-  const stopTyping = useCallback(() => {
-    if (!chatId) return;
-    
-    socketService.sendTyping(chatId, false);
-    setIsTyping(false);
-    
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-  }, [chatId]);
-
-  return { isTyping, startTyping, stopTyping };
 }

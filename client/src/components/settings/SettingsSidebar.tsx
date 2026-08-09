@@ -23,7 +23,7 @@ export function SettingsSidebar({
   activeTab,
   onTabChange,
   onClose,
-  menuItems
+  menuItems,
 }: SettingsSidebarProps) {
   const dispatch = useDispatch();
   const router = useRouter();
@@ -34,12 +34,12 @@ export function SettingsSidebar({
   };
 
   return (
-    <div className="w-full md:w-64 bg-gray-50 dark:bg-gray-800/50 border-r border-gray-100 dark:border-gray-800 p-6 flex flex-col">
+    <div className="w-full md:w-64 bg-[var(--surface-secondary)] border-r border-[var(--border-default)] p-6 flex flex-col">
       <div className="flex items-center justify-between mb-8">
-        <h2 className="text-xl font-black text-gray-900 dark:text-gray-100">Settings</h2>
-        <button 
+        <h2 className="text-xl font-black text-[var(--fg)] tracking-tight">Settings</h2>
+        <button
           onClick={onClose}
-          className="p-2 md:hidden hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+          className="p-2 md:hidden hover:bg-[var(--surface-hover)] rounded-[var(--radius-lg)] transition-all duration-200 text-[var(--fg-tertiary)] hover:text-[var(--fg)] active:scale-95"
         >
           <X className="w-5 h-5" />
         </button>
@@ -48,16 +48,25 @@ export function SettingsSidebar({
       <div className="space-y-1 flex-1">
         {menuItems.map((item) => {
           const Icon = item.icon;
+          const isActive = activeTab === item.id;
           return (
             <button
               key={item.id}
               onClick={() => onTabChange(item.id)}
               className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200",
-                activeTab === item.id
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
-                  : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                "w-full flex items-center gap-3 px-4 py-3 rounded-[var(--radius-lg)] text-sm font-semibold transition-all duration-200",
+                isActive
+                  ? "text-white shadow-[var(--shadow-md)]"
+                  : "text-[var(--fg-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
               )}
+              style={
+                isActive
+                  ? {
+                      backgroundColor: "var(--accent)",
+                      boxShadow: `0 4px 16px ${appearance?.accentColor || 'var(--accent)'}33`,
+                    }
+                  : {}
+              }
             >
               <Icon className="w-5 h-5" />
               {item.label}
@@ -66,9 +75,9 @@ export function SettingsSidebar({
         })}
       </div>
 
-      <button 
+      <button
         onClick={handleLogout}
-        className="flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl text-sm font-semibold transition-all mt-auto"
+        className="flex items-center gap-3 px-4 py-3 text-[var(--danger)] hover:bg-[var(--danger-light)] rounded-[var(--radius-lg)] text-sm font-semibold transition-all duration-200 mt-auto active:scale-[0.98]"
       >
         <LogOut className="w-5 h-5" />
         Logout

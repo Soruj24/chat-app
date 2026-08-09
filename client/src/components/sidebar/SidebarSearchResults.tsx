@@ -7,6 +7,7 @@ import { SearchEmptyState } from "./SearchEmptyState";
 import { IChat, Message, User } from "@/lib/types";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
+import { motion } from "framer-motion";
 
 interface SidebarSearchResultsProps {
   results: {
@@ -26,49 +27,60 @@ export function SidebarSearchResults({ results, activeId }: SidebarSearchResults
   }
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-      {/* 1. Chats Section */}
-      {results.chats.length > 0 && (
-        <div className="mb-4" key="search-chats">
-          <SectionHeader title="Conversations" />
-          {results.chats.map((chat) => (
-            <ChatListItem key={chat.id} chat={chat} isActive={activeId === chat.id} />
-          ))}
-        </div>
-      )}
+    <div className="flex-1 overflow-y-auto custom-scrollbar px-1">
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+      >
+        {/* Conversations */}
+        {results.chats.length > 0 && (
+          <div className="mb-2">
+            <SectionHeader title="Conversations" count={results.chats.length} />
+            {results.chats.map((chat) => (
+              <ChatListItem key={chat.id} chat={chat} isActive={activeId === chat.id} />
+            ))}
+          </div>
+        )}
 
-      {/* 2. Global Users Section */}
-      {results.users.length > 0 && (
-        <div className="mb-4" key="search-users">
-          <SectionHeader title="Global Users" />
-          {results.users.map((user) => (
-            <UserSearchResult key={user.id} user={user} />
-          ))}
-        </div>
-      )}
+        {/* Global Users */}
+        {results.users.length > 0 && (
+          <div className="mb-2">
+            <SectionHeader title="People" count={results.users.length} />
+            {results.users.map((user) => (
+              <UserSearchResult key={user.id} user={user} />
+            ))}
+          </div>
+        )}
 
-      {/* 3. Global Messages Section */}
-      {results.messages.length > 0 && (
-        <div className="mb-4" key="search-messages">
-          <SectionHeader title="Messages" />
-          {results.messages.map(({ chatId, message }, idx) => (
-            <MessageSearchResult 
-              key={`${chatId}-${message.id || idx}-${idx}`}
-              chatId={chatId}
-              message={message}
-              chatName={chats.find(c => c.id === chatId)?.name}
-            />
-          ))}
-        </div>
-      )}
+        {/* Global Messages */}
+        {results.messages.length > 0 && (
+          <div className="mb-2">
+            <SectionHeader title="Messages" count={results.messages.length} />
+            {results.messages.map(({ chatId, message }, idx) => (
+              <MessageSearchResult
+                key={`${chatId}-${message.id || idx}-${idx}`}
+                chatId={chatId}
+                message={message}
+                chatName={chats.find((c) => c.id === chatId)?.name}
+              />
+            ))}
+          </div>
+        )}
+      </motion.div>
     </div>
   );
 }
 
-function SectionHeader({ title }: { title: string }) {
+function SectionHeader({ title, count }: { title: string; count: number }) {
   return (
-    <div className="px-4 py-3 text-[11px] font-black text-blue-600 uppercase tracking-widest border-b border-gray-50 dark:border-gray-800/50 mb-1">
-      {title}
+    <div className="px-3 py-2 flex items-center gap-2">
+      <span className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-widest">
+        {title}
+      </span>
+      <span className="text-[10px] font-medium text-[var(--sidebar-text-muted)]/60">
+        {count}
+      </span>
     </div>
   );
 }

@@ -10,35 +10,29 @@ interface MessageReplyPreviewProps {
 }
 
 export function MessageReplyPreview({ replyTo, isMe, themeColor }: MessageReplyPreviewProps) {
-  const accentColor = themeColor || (isMe ? '#34c759' : '#28a8e8');
-  
+  const accent = themeColor || (isMe ? "#10a37f" : "#3b82f6");
+
   return (
-    <div 
+    <div
       className={cn(
-        "mx-2 mt-1.5 pl-2 py-1.5 pr-3 rounded-lg border-l-2 text-xs",
-        isMe 
-          ? "bg-[#2b4a40]" 
-          : "bg-[#18222d] dark:bg-[#242f3d]"
+        "mx-2.5 mt-2 pl-2.5 py-1.5 pr-3 rounded-lg border-l-[3px] text-xs backdrop-blur-sm",
+        isMe
+          ? "bg-white/10 border-l-white/40"
+          : "bg-gray-50 dark:bg-gray-800/50 border-l-gray-300 dark:border-l-gray-600"
       )}
-      style={{ borderLeftColor: accentColor }}
+      style={{ borderLeftColor: accent }}
     >
-      <div className="flex items-center gap-1.5">
-        <div 
-          className="w-0.5 h-3 rounded-full"
-          style={{ backgroundColor: accentColor }}
-        />
-        <p 
-          className="font-medium"
-          style={{ color: isMe ? '#c4e9c2' : '#28a8e8' }}
-        >
-          {replyTo.senderName}
-        </p>
-      </div>
+      <p
+        className="font-semibold text-[11px] mb-0.5"
+        style={{ color: isMe ? "rgba(255,255,255,0.9)" : accent }}
+      >
+        {replyTo.senderName}
+      </p>
       <p className={cn(
-        "mt-0.5 truncate",
-        isMe ? "text-[#c4e9c2]/80" : "text-[#8e8e93]"
+        "truncate text-[11px] leading-snug",
+        isMe ? "text-white/60" : "text-gray-400 dark:text-gray-500"
       )}>
-        {replyTo.text || 'Media'}
+        {replyTo.text || "Media"}
       </p>
     </div>
   );

@@ -1,18 +1,18 @@
 import { Router } from "express";
-import { seedUsers, getSeedStats } from "../controllers/seedController";
+import { seedAll, getSeedStats } from "../controllers/seedController";
 import { isLoggedIn, hasPermission } from "../middleware/auth";
 import { Permission } from "../models/interfaces/IUser";
+import { NODE_ENV } from "../secret";
 
 const seedRouter = Router();
 
-// Only super admin or someone with USERS_DELETE permission can seed/reset data
-seedRouter.use(isLoggedIn);
-seedRouter.use(hasPermission(Permission.USERS_DELETE));
+// In development, allow seed without auth for easy setup
+if (NODE_ENV === "production") {
+  seedRouter.use(isLoggedIn);
+  seedRouter.use(hasPermission(Permission.USERS_DELETE));
+}
 
-seedRouter.post("/users", seedUsers);
-
+seedRouter.post("/all", seedAll);
 seedRouter.get("/stats", getSeedStats);
-
-seedRouter.get("/", seedUsers); // or seedAllData depending on your needs
 
 export default seedRouter;

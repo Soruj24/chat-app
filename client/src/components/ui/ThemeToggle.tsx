@@ -1,42 +1,35 @@
 "use client";
 
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
-import { Sun, Moon, Monitor } from "lucide-react";
+import { useDesignSystem } from "@/components/ThemeProvider";
+import { Sun, Moon, Monitor, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ThemeToggleProps {
   className?: string;
 }
 
 export function ThemeToggle({ className = "" }: ThemeToggleProps) {
-  const [mounted, setMounted] = useState(false);
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { designTheme, setDesignTheme } = useDesignSystem();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
-  const themes = [
-    { value: "light", icon: Sun, label: "Light" },
-    { value: "dark", icon: Moon, label: "Dark" },
-    { value: "system", icon: Monitor, label: "System" },
+  const options = [
+    { id: "light" as const, icon: Sun, label: "Light" },
+    { id: "dark" as const, icon: Moon, label: "Dark" },
+    { id: "midnight" as const, icon: Moon, label: "Midnight" },
+    { id: "glass" as const, icon: Sparkles, label: "Glass" },
   ];
 
-  const currentTheme = resolvedTheme || theme || "system";
-
   return (
-    <div className={`flex items-center gap-1 ${className}`}>
-      {themes.map(({ value, icon: Icon, label }) => (
+    <div className={`flex items-center gap-0.5 ${className}`}>
+      {options.map(({ id, icon: Icon, label }) => (
         <button
-          key={value}
-          onClick={() => setTheme(value)}
-          className={`p-2 rounded-lg transition-all duration-200 ${
-            currentTheme === value
-              ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-              : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
-          }`}
+          key={id}
+          onClick={() => setDesignTheme(id)}
+          className={cn(
+            "p-2 rounded-lg transition-all duration-200",
+            designTheme === id
+              ? "bg-[var(--accent-light)] text-[var(--accent)]"
+              : "text-[var(--fg-tertiary)] hover:bg-[var(--surface-hover)] hover:text-[var(--fg-secondary)]"
+          )}
           title={label}
         >
           <Icon className="w-4 h-4" />

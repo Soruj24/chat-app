@@ -1,144 +1,143 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { Copy, Trash2, Share2, CornerUpRight, Pin, Star } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { QuickReactions } from "./context-menu/QuickReactions";
-import { ContextMenuItem } from "./context-menu/ContextMenuItem";
+import { motion } from "framer-motion";
+import { Reply, Forward, Copy, Pin, Star, Trash2, SmilePlus } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Message } from "@/lib/types";
+import { spring, scaleIn } from "@/lib/animations";
 
 interface ContextMenuProps {
   x: number;
   y: number;
+  isPinned: boolean;
+  isStarred: boolean;
   onClose: () => void;
-  onCopy: () => void;
-  onDelete: () => void;
-  onForward: () => void;
   onReply: () => void;
+  onForward: () => void;
   onPin: () => void;
   onStar: () => void;
-  onReact: (emoji: string) => void;
-  isPinned?: boolean;
-  isStarred?: boolean;
+  onDelete: () => void;
+  onCopy: () => void;
+  onReact?: (emoji: string) => void;
 }
+
+const QUICK_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
+
+const MENU_ITEMS = [
+  { action: "reply", icon: Reply, label: "Reply", shortcut: "R" },
+  { action: "forward", icon: Forward, label: "Forward", shortcut: "F" },
+  { action: "copy", icon: Copy, label: "Copy", shortcut: "C" },
+  { action: "pin", icon: Pin, label: "Pin", shortcut: "P" },
+  { action: "star", icon: Star, label: "Star", shortcut: "S" },
+  { action: "delete", icon: Trash2, label: "Delete", danger: true, shortcut: "Del" },
+];
 
 export function ContextMenu({
   x,
   y,
-  onClose,
-  onCopy,
-  onDelete,
-  onForward,
-  onReply,
-  onPin,
-  onStar,
-  onReact,
   isPinned,
   isStarred,
+  onClose,
+  onReply,
+  onForward,
+  onPin,
+  onStar,
+  onDelete,
+  onCopy,
+  onReact,
 }: ContextMenuProps) {
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [onClose]);
-
-  const emojis = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
-
-  const handleAction = (action: () => void) => {
-    action();
-    onClose();
-  };
-
-  // Determine transform based on screen position to avoid overflow
-  const screenWidth = typeof window !== "undefined" ? window.innerWidth : 0;
-  const screenHeight = typeof window !== "undefined" ? window.innerHeight : 0;
-  
-  const isRightSide = x > screenWidth / 2;
-  const isBottomSide = y > screenHeight / 2;
-
-  const [deleteMode, setDeleteMode] = useState<"me" | "everyone" | null>(null);
-
-  const handleDelete = (mode: "me" | "everyone") => {
-    setDeleteMode(mode);
-    onDelete();
-    onClose();
-  };
+  const menuX = Math.min(x, window.innerWidth - 220);
+  const menuY = Math.min(y, window.innerHeight - 400);
 
   return (
-    <AnimatePresence>
+    <>
       <motion.div
-        ref={menuRef}
-        initial={{ opacity: 0, scale: 0.9, y: isBottomSide ? 10 : -10 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: isBottomSide ? 10 : -10 }}
-        className="fixed z-[100] bg-[#ffffff] dark:bg-[#18222d] rounded-xl shadow-2xl border border-[#e6e8ec] dark:border-[#2b3142] py-1.5 min-w-[200px] overflow-hidden"
-        style={{ 
-          left: x, 
-          top: y,
-          transform: `translate(${isRightSide ? "-100%" : "0"}, ${isBottomSide ? "-100%" : "0"})`
-        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.1 }}
+        className="fixed inset-0 z-[80]"
+        onClick={onClose}
+      />
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        exit="hidden"
+        variants={scaleIn}
+        transition={spring.snappy}
+        className="fixed z-[90] bg-[var(--bg-elevated)] rounded-2xl shadow-2xl border border-[var(--border-default)] overflow-hidden min-w-[220px] backdrop-blur-xl"
+        style={{ left: menuX, top: menuY }}
       >
-        <QuickReactions emojis={emojis} onReact={onReact} onClose={onClose} />
+        {/* Quick reactions */}
+        {onReact && (
+          <div className="flex items-center gap-0.5 p-2 border-b border-[var(--border-light)]">
+            {QUICK_EMOJIS.map((emoji) => (
+              <motion.button
+                key={emoji}
+                whileHover={{ scale: 1.2 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => {
+                  onReact(emoji);
+                  onClose();
+                }}
+                className="w-8 h-8 flex items-center justify-center hover:bg-[var(--surface-hover)] rounded-lg transition-colors text-lg"
+              >
+                {emoji}
+              </motion.button>
+            ))}
+          </div>
+        )}
 
-        <div className="flex flex-col">
-          <ContextMenuItem
-            label="Reply"
-            icon={CornerUpRight}
-            onClick={() => handleAction(onReply)}
-            iconColor="text-[#28a8e8]"
-          />
-          <ContextMenuItem
-            label={isStarred ? "Unstar" : "Star"}
-            icon={Star}
-            onClick={() => handleAction(onStar)}
-            iconColor={
-              isStarred ? "text-[#ffab00]" : "text-[#8e8e93]"
-            }
-            iconFill={isStarred}
-          />
-          <ContextMenuItem
-            label={isPinned ? "Unpin" : "Pin"}
-            icon={Pin}
-            onClick={() => handleAction(onPin)}
-            iconColor={
-              isPinned ? "text-[#28a8e8]" : "text-[#8e8e93]"
-            }
-            iconFill={isPinned}
-          />
-          <ContextMenuItem
-            label="Copy"
-            icon={Copy}
-            onClick={() => handleAction(onCopy)}
-            iconColor="text-[#8e8e93]"
-          />
-          <ContextMenuItem
-            label="Forward"
-            icon={Share2}
-            onClick={() => handleAction(onForward)}
-            iconColor="text-[#34c759]"
-          />
+        {/* Menu items */}
+        <div className="py-1.5">
+          {MENU_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = item.action === "pin" ? isPinned : item.action === "star" ? isStarred : false;
+            const label = item.action === "pin"
+              ? (isPinned ? "Unpin" : "Pin")
+              : item.action === "star"
+              ? (isStarred ? "Unstar" : "Star")
+              : item.label;
 
-          <div className="h-px bg-[#e6e8ec] dark:bg-[#2b3142] my-1" />
-
-          <ContextMenuItem
-            label="Delete for me"
-            icon={Trash2}
-            onClick={() => handleDelete("me")}
-            variant="danger"
-          />
-          <ContextMenuItem
-            label="Delete for everyone"
-            icon={Trash2}
-            onClick={() => handleDelete("everyone")}
-            variant="danger"
-          />
+            return (
+              <motion.button
+                key={item.action}
+                whileHover={{ x: 2 }}
+                transition={spring.gentle}
+                onClick={() => {
+                  if (item.action === "reply") onReply();
+                  else if (item.action === "forward") onForward();
+                  else if (item.action === "copy") onCopy();
+                  else if (item.action === "pin") onPin();
+                  else if (item.action === "star") onStar();
+                  else if (item.action === "delete") onDelete();
+                  onClose();
+                }}
+                className={cn(
+                  "w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors group",
+                  item.danger
+                    ? "text-[var(--danger)] hover:bg-[var(--danger-light)]"
+                    : isActive
+                    ? "text-[var(--accent)] bg-[var(--accent-light)]"
+                    : "text-[var(--fg)] hover:bg-[var(--surface-hover)]"
+                )}
+              >
+                <Icon className={cn(
+                  "w-4 h-4",
+                  item.danger ? "text-[var(--danger)]" : isActive ? "text-[var(--accent)]" : "text-[var(--fg-secondary)]"
+                )} />
+                <span className="font-medium flex-1 text-left">{label}</span>
+                <span className={cn(
+                  "text-[10px] font-mono font-bold opacity-0 group-hover:opacity-60 transition-opacity",
+                  item.danger ? "text-[var(--danger)]" : "text-[var(--fg-muted)]"
+                )}>
+                  {item.shortcut}
+                </span>
+              </motion.button>
+            );
+          })}
         </div>
       </motion.div>
-    </AnimatePresence>
+    </>
   );
 }

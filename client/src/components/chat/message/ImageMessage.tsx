@@ -1,97 +1,88 @@
 "use client";
 
-import { Download, Loader2 } from "lucide-react";
+import { Download, Star, Pin, Maximize2 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { Message } from "@/lib/types";
 import { MessageStatus } from "./MessageStatus";
-import { Star, Pin } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SkeletonImage } from "@/components/skeletons";
 
 interface ImageMessageProps {
   message: Message;
   isMe: boolean;
   onImageClick?: (url: string) => void;
-  bubbleStyle?: 'modern' | 'classic' | 'rounded';
 }
 
-export function ImageMessage({
-  message,
-  isMe,
-  onImageClick,
-  bubbleStyle = 'modern',
-}: ImageMessageProps) {
+export function ImageMessage({ message, isMe, onImageClick }: ImageMessageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const url = message.mediaUrl || "";
 
   return (
-    <div className={cn(
-      "relative group/image overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md",
-      bubbleStyle === 'modern' && (isMe ? "rounded-2xl rounded-tr-none" : "rounded-2xl rounded-tl-none"),
-      bubbleStyle === 'classic' && "rounded-lg",
-      bubbleStyle === 'rounded' && "rounded-3xl",
-      !bubbleStyle && "rounded-2xl",
-      "bg-gray-100 dark:bg-gray-800"
-    )}>
-      {/* Loading Shimmer */}
+    <div
+      className={cn(
+        "relative group/image overflow-hidden",
+        isMe ? "rounded-2xl rounded-tr-md" : "rounded-2xl rounded-tl-md"
+      )}
+    >
+      {/* Loading shimmer */}
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700 animate-pulse">
-          <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
-        </div>
+        <SkeletonImage
+          className="absolute inset-0 min-h-[200px]"
+          showOverlay
+        />
       )}
 
-      <div
-        className={cn(
-          "relative w-full min-w-[240px] max-w-[400px] overflow-hidden transition-all duration-500",
-          isLoading ? "opacity-0 scale-95" : "opacity-100 scale-100",
-        )}
-      >
+      <div className={cn("relative overflow-hidden", isLoading ? "opacity-0" : "opacity-100 transition-opacity duration-300")}>
         <Image
           src={url}
-          alt="Message content"
+          alt="Shared image"
           width={400}
           height={300}
           unoptimized
-          className="w-full h-auto max-h-[500px] object-cover cursor-pointer transition-transform duration-500 group-hover/image:scale-105"
+          className="w-full h-auto max-h-[400px] object-cover cursor-pointer transition-transform duration-500 group-hover/image:scale-[1.02]"
           onClick={() => onImageClick?.(url)}
           onLoadingComplete={() => setIsLoading(false)}
         />
 
-        {/* Bottom Gradient Overlay for Info Visibility */}
-        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+        {/* Hover overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
 
-        {/* Message Info Overlay */}
-        <div className="absolute bottom-2 right-3 flex items-center gap-1.5 select-none pointer-events-none">
-          <div className="flex items-center gap-1">
-            {message.isStarred && (
-              <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
-            )}
-            {message.isPinned && (
-              <Pin className="w-2.5 h-2.5 rotate-45 text-white/90" />
+        {/* Expand button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onImageClick?.(url);
+          }}
+          className="absolute top-3 right-3 p-2 bg-black/40 backdrop-blur-md text-white rounded-xl opacity-0 group-hover/image:opacity-100 transition-all duration-200 hover:bg-black/60"
+        >
+          <Maximize2 className="w-4 h-4" />
+        </button>
+
+        {/* Download button */}
+        <a
+          href={url}
+          download
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute bottom-3 right-3 p-2 bg-black/40 backdrop-blur-md text-white rounded-xl opacity-0 group-hover/image:opacity-100 transition-all duration-200 hover:bg-black/60 translate-y-2 group-hover/image:translate-y-0"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Download className="w-4 h-4" />
+        </a>
+
+        {/* Bottom info bar */}
+        <div className="absolute bottom-0 left-0 right-0 px-3 pb-2 pt-8 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-200">
+          <div className="flex items-center justify-end gap-1.5">
+            {message.isStarred && <Star className="w-3 h-3 fill-amber-400 text-amber-400" />}
+            {message.isPinned && <Pin className="w-3 h-3 text-white/80" />}
+            <span className="text-[10px] font-medium text-white/90">{message.timestamp}</span>
+            {isMe && (
+              <MessageStatus status={message.status || "sent"} className="text-white/80" size={12} />
             )}
           </div>
-          <span className="text-[10px] font-semibold text-white/95 tracking-tight">
-            {message.timestamp}
-          </span>
-          {isMe && (
-            <div className="flex items-center ml-0.5 filter drop-shadow-sm">
-              <MessageStatus status={message.status || "sent"} />
-            </div>
-          )}
         </div>
       </div>
-
-      {/* Download Button */}
-      <a
-        href={url}
-        download
-        target="_blank"
-        rel="noopener noreferrer"
-        className="absolute top-3 right-3 p-2.5 bg-black/40 backdrop-blur-md text-white rounded-full opacity-0 group-hover/image:opacity-100 transition-all duration-300 hover:bg-black/60 translate-y-2 group-hover/image:translate-y-0"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Download className="w-4 h-4" />
-      </a>
     </div>
   );
 }

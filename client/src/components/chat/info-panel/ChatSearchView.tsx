@@ -3,12 +3,24 @@
 import { ArrowLeft, Search, X } from "lucide-react";
 import { Message, IChat } from "@/lib/types";
 import { useState, useMemo } from "react";
+import { EmptyState, noSearchResults } from "@/components/empty-states";
 
 interface ChatSearchViewProps {
   messages: Message[];
   chat: IChat;
   onBack: () => void;
   onMessageClick?: (messageId: string) => void;
+}
+
+function SearchPromptIllustration() {
+  return (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="28" cy="28" r="14" fill="currentColor" opacity="0.08" />
+      <circle cx="28" cy="28" r="14" stroke="currentColor" strokeWidth="2" />
+      <line x1="38" y1="38" x2="50" y2="50" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+      <line x1="22" y1="28" x2="34" y2="28" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.3" />
+    </svg>
+  );
 }
 
 export function ChatSearchView({ messages, chat, onBack, onMessageClick }: ChatSearchViewProps) {
@@ -59,10 +71,13 @@ export function ChatSearchView({ messages, chat, onBack, onMessageClick }: ChatS
       {/* Search Results */}
       <div className="flex-1 overflow-y-auto p-4 no-scrollbar space-y-4">
         {!searchQuery ? (
-          <div className="h-full flex flex-col items-center justify-center text-center p-6 opacity-40">
-            <Search className="w-12 h-12 mb-4" />
-            <p className="text-sm font-medium">Search for messages</p>
-            <p className="text-xs mt-1">Find specific messages in this conversation</p>
+          <div className="h-full flex items-center justify-center">
+            <EmptyState
+              illustration={<SearchPromptIllustration />}
+              title="Search for messages"
+              description="Find specific messages in this conversation."
+              compact
+            />
           </div>
         ) : filteredMessages.length > 0 ? (
           <div className="space-y-3">
@@ -88,12 +103,11 @@ export function ChatSearchView({ messages, chat, onBack, onMessageClick }: ChatS
             ))}
           </div>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-center p-6 opacity-40">
-            <div className="w-12 h-12 mb-4 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
-              <X className="w-6 h-6" />
-            </div>
-            <p className="text-sm font-medium">No results found</p>
-            <p className="text-xs mt-1">Try different keywords or check for typos</p>
+          <div className="h-full flex items-center justify-center">
+            <EmptyState
+              {...noSearchResults(() => setSearchQuery(""))}
+              compact
+            />
           </div>
         )}
       </div>

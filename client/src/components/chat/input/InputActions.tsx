@@ -1,14 +1,19 @@
 "use client";
 
-import { Smile, Paperclip } from "lucide-react";
+import { Smile, Paperclip, Film, Bold, Italic, Code, Hash } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 interface InputActionsProps {
   showEmojiPicker: boolean;
   onEmojiPickerToggle: () => void;
   isAttachmentMenuOpen: boolean;
   onAttachmentMenuToggle: () => void;
+  showGifPicker: boolean;
+  onGifPickerToggle: () => void;
   themeColor?: string;
+  showMarkdownBar?: boolean;
+  onMarkdownToggle?: () => void;
 }
 
 export function InputActions({
@@ -16,38 +21,73 @@ export function InputActions({
   onEmojiPickerToggle,
   isAttachmentMenuOpen,
   onAttachmentMenuToggle,
-  themeColor,
+  showGifPicker,
+  onGifPickerToggle,
+  showMarkdownBar,
+  onMarkdownToggle,
 }: InputActionsProps) {
-  const handleAttachmentClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onAttachmentMenuToggle();
-  };
-
   return (
-    <div className="flex items-center mb-0.5">
-      <button 
-        type="button"
+    <div className="flex items-center gap-0.5 mb-1">
+      <ActionButton
+        isActive={showEmojiPicker}
         onClick={onEmojiPickerToggle}
-        className={cn(
-          "p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all duration-200",
-          showEmojiPicker ? "text-blue-600 bg-blue-50 dark:bg-blue-900/30" : "text-gray-400 dark:text-gray-500"
-        )}
-        style={showEmojiPicker && themeColor ? { backgroundColor: `${themeColor}20`, color: themeColor } : {}}
+        title="Emoji (Ctrl+E)"
       >
-        <Smile className="w-5 h-5" />
-      </button>
-      <button 
-        type="button"
-        onClick={handleAttachmentClick}
-        className={cn(
-          "p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all duration-200",
-          isAttachmentMenuOpen ? "text-blue-600 bg-blue-50 dark:bg-blue-900/30" : "text-gray-400 dark:text-gray-500"
-        )}
-        style={isAttachmentMenuOpen && themeColor ? { backgroundColor: `${themeColor}20`, color: themeColor } : {}}
+        <Smile className="w-[18px] h-[18px]" />
+      </ActionButton>
+      <ActionButton
+        isActive={showGifPicker}
+        onClick={onGifPickerToggle}
+        title="GIF"
       >
-        <Paperclip className="w-5 h-5" />
-      </button>
+        <span className="text-[10px] font-black leading-none">GIF</span>
+      </ActionButton>
+      <ActionButton
+        isActive={isAttachmentMenuOpen}
+        onClick={onAttachmentMenuToggle}
+        title="Attach file"
+      >
+        <Paperclip className="w-[18px] h-[18px]" />
+      </ActionButton>
+      {onMarkdownToggle && (
+        <ActionButton
+          isActive={!!showMarkdownBar}
+          onClick={onMarkdownToggle}
+          title="Formatting (Ctrl+M)"
+        >
+          <Hash className="w-[18px] h-[18px]" />
+        </ActionButton>
+      )}
     </div>
+  );
+}
+
+function ActionButton({
+  isActive,
+  onClick,
+  title,
+  children,
+}: {
+  isActive: boolean;
+  onClick: () => void;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <motion.button
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
+      type="button"
+      onClick={onClick}
+      title={title}
+      className={cn(
+        "w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150",
+        isActive
+          ? "text-[var(--color-primary)] bg-[var(--color-primary)]/10"
+          : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--composer-toolbar-hover)]"
+      )}
+    >
+      {children}
+    </motion.button>
   );
 }

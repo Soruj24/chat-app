@@ -18,30 +18,28 @@ export function MessageReactions({ reactions, isMe, onReactionClick }: MessageRe
   if (!reactions || reactions.length === 0) return null;
 
   return (
-    <div className={cn(
-      "absolute -bottom-2 flex gap-0.5",
-      isMe ? "right-2" : "left-2"
-    )}>
-      {reactions.slice(0, 3).map((reaction) => (
+    <div
+      className={cn(
+        "flex flex-wrap gap-1 mt-1",
+        isMe ? "justify-end" : "justify-start"
+      )}
+    >
+      {reactions.map((reaction) => (
         <button
           key={reaction.emoji}
           onClick={() => onReactionClick?.(reaction.emoji)}
           className={cn(
-            "flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] transition-all active:scale-90 border",
-            isMe
-              ? "bg-[#203239] border-[#2b4a40]"
-              : "bg-[#ffffff] border-[#e6e8ec] dark:bg-[#242f3d] dark:border-[#2b3142]",
-            reaction.me && "ring-1 ring-[#34c759]"
+            "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs transition-all duration-150 active:scale-95 border",
+            reaction.me
+              ? isMe
+                ? "bg-white/20 border-white/30 text-white"
+                : "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400"
+              : "bg-gray-50 dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
           )}
         >
-          <span className="text-xs">{reaction.emoji}</span>
+          <span className="text-sm leading-none">{reaction.emoji}</span>
           {reaction.count > 1 && (
-            <span className={cn(
-              "font-medium",
-              isMe ? "text-[#c4e9c2]" : "text-[#000000] dark:text-[#ffffff]"
-            )}>
-              {reaction.count}
-            </span>
+            <span className="text-[10px] font-semibold leading-none">{reaction.count}</span>
           )}
         </button>
       ))}

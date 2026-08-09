@@ -4,7 +4,7 @@ import { Message } from "@/lib/types";
 import { ImageMessage } from "./ImageMessage";
 import { VideoMessage } from "./VideoMessage";
 import { VoiceMessage } from "./VoiceMessage";
-import { FileIcon, MapPin, User } from "lucide-react";
+import { FileIcon, MapPin, User, Download } from "lucide-react";
 import React from "react";
 import { FormattedText } from "./FormattedText";
 import { cn } from "@/lib/utils";
@@ -15,8 +15,7 @@ interface MessageContentProps {
   highlight?: string;
   onImageClick?: (url: string) => void;
   themeColor?: string;
-  fontSize?: 'small' | 'medium' | 'large';
-  bubbleStyle?: 'modern' | 'classic' | 'rounded';
+  fontSize?: "small" | "medium" | "large";
 }
 
 export function MessageContent({
@@ -25,149 +24,166 @@ export function MessageContent({
   highlight,
   onImageClick,
   themeColor,
-  fontSize = 'medium',
-  bubbleStyle,
+  fontSize = "medium",
 }: MessageContentProps) {
   const fontSizeClass = {
-    small: "text-[12px]",
+    small: "text-[13px]",
     medium: "text-[14px]",
-    large: "text-[16px]",
+    large: "text-[15px]",
   }[fontSize];
 
-  return (
-    <>
-      {/* Media Content */}
-      {message.type === "image" && message.mediaUrl && (
-        <ImageMessage 
-          message={message}
-          isMe={isMe}
-          onImageClick={onImageClick} 
-          bubbleStyle={bubbleStyle}
-        />
-      )}
+  // Image message
+  if (message.type === "image" && message.mediaUrl) {
+    return (
+      <ImageMessage
+        message={message}
+        isMe={isMe}
+        onImageClick={onImageClick}
+      />
+    );
+  }
 
-      {message.type === "video" && message.mediaUrl && (
-        <VideoMessage url={message.mediaUrl} />
-      )}
+  // Video message
+  if (message.type === "video" && message.mediaUrl) {
+    return <VideoMessage url={message.mediaUrl} isMe={isMe} />;
+  }
 
-      {message.type === "file" && (
-        <a 
-          href={message.mediaUrl} 
+  // Voice message
+  if (message.type === "voice") {
+    return (
+      <VoiceMessage
+        url={message.mediaUrl}
+        duration={message.duration || "0:00"}
+        messageId={message.id}
+        isMe={isMe}
+        themeColor={themeColor}
+      />
+    );
+  }
+
+  // File message
+  if (message.type === "file") {
+    return (
+      <div className="p-3">
+        <a
+          href={message.mediaUrl}
           download={message.fileName || "file"}
           target="_blank"
           rel="noopener noreferrer"
-          className="p-3 flex items-center gap-3 hover:bg-[#f5f5f5] dark:hover:bg-[#242f3d] transition-colors cursor-pointer group max-w-[300px]"
+          className={cn(
+            "flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group max-w-[320px]",
+            isMe
+              ? "bg-white/10 hover:bg-white/15"
+              : "bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-700/50 border border-gray-100 dark:border-gray-700/50"
+          )}
         >
-          <div className="p-2.5 bg-[#effdde] text-[#34c759] rounded-xl group-hover:bg-[#34c759] group-hover:text-white transition-all duration-300">
-            <FileIcon className="w-7 h-7" />
+          <div
+            className={cn(
+              "p-2.5 rounded-xl transition-all duration-200",
+              isMe
+                ? "bg-white/20 text-white"
+                : "bg-blue-50 dark:bg-blue-900/20 text-blue-500 group-hover:bg-blue-500 group-hover:text-white"
+            )}
+          >
+            <FileIcon className="w-6 h-6" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className={cn("font-semibold truncate group-hover:text-[#34c759] transition-colors", fontSizeClass)}>
+            <p className={cn("font-semibold truncate text-sm", fontSizeClass, isMe ? "text-white" : "text-gray-900 dark:text-gray-100")}>
               {message.fileName || "File"}
             </p>
             <div className="flex items-center gap-2 mt-0.5">
               {message.fileSize && message.fileSize !== "Size Unknown" && (
-                <>
-                  <span className="text-[10px] font-medium text-[#8e8e93] uppercase tracking-wider">
-                    {message.fileSize}
-                  </span>
-                  <span className="text-[10px] text-[#8e8e93]">•</span>
-                </>
+                <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                  {message.fileSize}
+                </span>
               )}
-              <span className="text-[10px] font-medium text-[#34c759]">
+              <span className="text-[10px] font-semibold text-blue-500 dark:text-blue-400">
                 Download
               </span>
             </div>
           </div>
+          <Download className={cn("w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity", isMe ? "text-white/60" : "text-gray-400")} />
         </a>
-      )}
+      </div>
+    );
+  }
 
-      {message.type === "voice" && (
-        <VoiceMessage 
-          url={message.mediaUrl}
-          duration={message.duration || "0:00"} 
-          messageId={message.id} 
-          isMe={isMe} 
-          themeColor={themeColor}
-        />
-      )}
-
-      {message.type === "location" && message.location && (
-        <div className="p-3">
-          <a 
-            href={`https://www.google.com/maps?q=${message.location.latitude},${message.location.longitude}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-col gap-2 group"
-          >
-            <div className="relative h-32 w-full bg-gray-200 dark:bg-gray-800 rounded-xl overflow-hidden flex items-center justify-center">
-              <MapPin className="w-8 h-8 text-green-500 animate-bounce" />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-            </div>
-            <div className="flex items-center gap-2">
-              <div 
-                className="p-1.5 bg-green-500/10 rounded-lg shrink-0"
-                style={!isMe && themeColor ? { backgroundColor: `${themeColor}20` } : {}}
-              >
-                <MapPin 
-                  className="w-4 h-4 text-green-500" 
-                  style={!isMe && themeColor ? { color: themeColor } : {}}
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <span 
-                  className={cn("font-medium text-blue-500 hover:underline block truncate", fontSizeClass)}
-                  style={!isMe && themeColor ? { color: themeColor } : {}}
-                >
-                  {message.location.address || "View Location"}
-                </span>
-                {message.location.address && (
-                  <span className="text-[10px] text-gray-500 dark:text-gray-400 block truncate">
-                    {message.location.latitude.toFixed(4)}, {message.location.longitude.toFixed(4)}
-                  </span>
-                )}
-              </div>
-            </div>
-          </a>
-        </div>
-      )}
-
-      {message.type === "contact" && message.contact && (
-        <div className="p-3 min-w-[200px]">
-          <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700/50">
-            <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center">
-              <User className="w-6 h-6 text-orange-500" />
+  // Location message
+  if (message.type === "location" && message.location) {
+    return (
+      <div className="p-3">
+        <a
+          href={`https://www.google.com/maps?q=${message.location.latitude},${message.location.longitude}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex flex-col gap-2 group"
+        >
+          <div className="relative h-32 w-full bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden flex items-center justify-center">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-blue-500/10" />
+            <MapPin className="w-8 h-8 text-green-500 relative z-10" />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-green-500/10 rounded-lg shrink-0">
+              <MapPin className="w-4 h-4 text-green-500" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className={cn("font-bold truncate", fontSizeClass)}>{message.contact.name}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{message.contact.phoneNumber}</p>
+              <span className={cn("font-medium text-blue-500 hover:underline block truncate text-sm", fontSizeClass)}>
+                {message.location.address || "View Location"}
+              </span>
+              {message.location.address && (
+                <span className="text-[10px] text-gray-400 block truncate">
+                  {message.location.latitude.toFixed(4)}, {message.location.longitude.toFixed(4)}
+                </span>
+              )}
             </div>
           </div>
-          <button 
-            onClick={() => {
-              const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${message.contact?.name}\nTEL:${message.contact?.phoneNumber}\nEND:VCARD`;
-              const blob = new Blob([vcard], { type: 'text/vcard' });
-              const url = window.URL.createObjectURL(blob);
-              const link = document.createElement('a');
-              link.href = url;
-              link.setAttribute('download', `${message.contact?.name}.vcf`);
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-            }}
-            className="w-full mt-2 py-2 text-xs font-semibold text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-xl transition-colors border border-orange-100 dark:border-orange-900/30"
-          >
-            Save Contact
-          </button>
-        </div>
-      )}
+        </a>
+      </div>
+    );
+  }
 
-      {/* Text Content */}
-      {message.text && (
-        <div className={cn("px-4 py-2.5 break-words leading-relaxed", fontSizeClass)}>
-          <FormattedText text={message.text} query={highlight} />
+  // Contact message
+  if (message.type === "contact" && message.contact) {
+    return (
+      <div className="p-3 min-w-[220px]">
+        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50">
+          <div className="w-11 h-11 rounded-full bg-orange-500/10 flex items-center justify-center shrink-0">
+            <User className="w-5 h-5 text-orange-500" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className={cn("font-bold truncate text-sm", fontSizeClass)}>{message.contact.name}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{message.contact.phoneNumber}</p>
+          </div>
         </div>
-      )}
-    </>
-  );
+        <button
+          onClick={() => {
+            const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${message.contact?.name}\nTEL:${message.contact?.phoneNumber}\nEND:VCARD`;
+            const blob = new Blob([vcard], { type: "text/vcard" });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", `${message.contact?.name}.vcf`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }}
+          className="w-full mt-2 py-2 text-xs font-semibold text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-xl transition-colors border border-orange-100 dark:border-orange-900/30"
+        >
+          Save Contact
+        </button>
+      </div>
+    );
+  }
+
+  // Text message
+  if (message.text) {
+    return (
+      <div className={cn("px-3.5 py-2 break-words", fontSizeClass)}>
+        <FormattedText text={message.text} query={highlight} />
+      </div>
+    );
+  }
+
+  return null;
 }

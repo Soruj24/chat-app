@@ -7,6 +7,7 @@ import { ForwardModalHeader } from "../forward/ForwardModalHeader";
 import { ForwardModalSearch } from "../forward/ForwardModalSearch";
 import { ForwardModalFooter } from "../forward/ForwardModalFooter";
 import { useForwardModal } from "@/hooks/useForwardModal";
+import { spring, fadeUp } from "@/lib/animations";
 
 interface ForwardModalProps {
   message: Message;
@@ -33,13 +34,16 @@ export function ForwardModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.15 }}
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.95, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.95, opacity: 0, y: 20 }}
+        initial="hidden"
+        animate="visible"
+        exit="hidden"
+        variants={fadeUp}
+        transition={spring.gentle}
         className="bg-white dark:bg-gray-900 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
         onClick={(e) => e.stopPropagation()}
       >

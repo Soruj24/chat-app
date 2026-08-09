@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { X, Copy, Reply, Forward, Smile, MoreVertical, Trash2, Edit, Pin, Star } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { spring, scaleIn } from "@/lib/animations";
 
 interface ContextMenuProps {
   x: number;
@@ -12,6 +14,7 @@ interface ContextMenuProps {
     icon?: React.ReactNode;
     onClick: () => void;
     variant?: "default" | "danger";
+    shortcut?: string;
   }>;
 }
 
@@ -24,43 +27,69 @@ export function ContextMenu({ x, y, onClose, actions }: ContextMenuProps) {
         onClose();
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
-  // Adjust position to stay within viewport
-  const adjustedX = Math.min(x, window.innerWidth - 200);
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  const adjustedX = Math.min(x, window.innerWidth - 220);
   const adjustedY = Math.min(y, window.innerHeight - 300);
 
   return (
-    <div
-      ref={menuRef}
-      className="fixed z-50 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-1 min-w-[180px] animate-in fade-in zoom-in-95 duration-100"
-      style={{ left: adjustedX, top: adjustedY }}
-    >
-      {actions.map((action, index) => (
-        <button
-          key={index}
-          onClick={() => {
-            action.onClick();
-            onClose();
-          }}
-          className={`w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors ${
-            action.variant === "danger"
-              ? "text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-              : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-          }`}
-        >
-          {action.icon}
-          {action.label}
-        </button>
-      ))}
-    </div>
+    <>
+      <div className="fixed inset-0 z-[80]" onClick={onClose} />
+      <motion.div
+        ref={menuRef}
+        initial="hidden"
+        animate="visible"
+        exit="hidden"
+        variants={scaleIn}
+        transition={spring.snappy}
+        className="fixed z-[90] bg-[var(--bg-elevated)] rounded-2xl shadow-2xl border border-[var(--border-default)] py-1.5 min-w-[200px] overflow-hidden backdrop-blur-xl"
+        style={{ left: adjustedX, top: adjustedY }}
+      >
+        {actions.map((action, index) => (
+          <button
+            key={index}
+            onClick={() => {
+              action.onClick();
+              onClose();
+            }}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors group",
+              action.variant === "danger"
+                ? "text-[var(--danger)] hover:bg-[var(--danger-light)]"
+                : "text-[var(--fg)] hover:bg-[var(--surface-hover)]"
+            )}
+          >
+            {action.icon && (
+              <span className={action.variant === "danger" ? "text-[var(--danger)]" : "text-[var(--fg-secondary)]"}>
+                {action.icon}
+              </span>
+            )}
+            <span className="font-medium flex-1 text-left">{action.label}</span>
+            {action.shortcut && (
+              <span className={cn(
+                "text-[10px] font-mono font-bold opacity-0 group-hover:opacity-60 transition-opacity",
+                action.variant === "danger" ? "text-[var(--danger)]" : "text-[var(--fg-muted)]"
+              )}>
+                {action.shortcut}
+              </span>
+            )}
+          </button>
+        ))}
+      </motion.div>
+    </>
   );
 }
 
-// Message context menu for chat
 export function useMessageContextMenu() {
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -78,7 +107,6 @@ export function useMessageContextMenu() {
   return { contextMenu, showContextMenu, hideContextMenu };
 }
 
-// Example usage actions for message
 export const messageContextActions = (
   messageId: string,
   isOwner: boolean,
@@ -92,13 +120,13 @@ export const messageContextActions = (
     onStar: () => void;
   }
 ) => [
-  { label: "Reply", icon: <Reply className="w-4 h-4" />, onClick: handlers.onReply },
-  { label: "Forward", icon: <Forward className="w-4 h-4" />, onClick: handlers.onForward },
-  { label: "Copy", icon: <Copy className="w-4 h-4" />, onClick: handlers.onCopy },
+  { label: "Reply", icon: <span className="w-4 h-4 flex items-center justify-center">↩</span>, onClick: handlers.onReply, shortcut: "R" },
+  { label: "Forward", icon: <span className="w-4 h-4 flex items-center justify-center">↪</span>, onClick: handlers.onForward, shortcut: "F" },
+  { label: "Copy", icon: <span className="w-4 h-4 flex items-center justify-center">⎘</span>, onClick: handlers.onCopy, shortcut: "C" },
   ...(isOwner ? [
-    { label: "Edit", icon: <Edit className="w-4 h-4" />, onClick: handlers.onEdit || (() => {}) },
-    { label: "Delete", icon: <Trash2 className="w-4 h-4" />, onClick: handlers.onDelete, variant: "danger" as const },
+    { label: "Edit", icon: <span className="w-4 h-4 flex items-center justify-center">✎</span>, onClick: handlers.onEdit || (() => {}), shortcut: "E" },
+    { label: "Delete", icon: <span className="w-4 h-4 flex items-center justify-center">⌫</span>, onClick: handlers.onDelete, variant: "danger" as const, shortcut: "Del" },
   ] : []),
-  { label: "Pin", icon: <Pin className="w-4 h-4" />, onClick: handlers.onPin },
-  { label: "Star", icon: <Star className="w-4 h-4" />, onClick: handlers.onStar },
+  { label: "Pin", icon: <span className="w-4 h-4 flex items-center justify-center">📌</span>, onClick: handlers.onPin, shortcut: "P" },
+  { label: "Star", icon: <span className="w-4 h-4 flex items-center justify-center">⭐</span>, onClick: handlers.onStar, shortcut: "S" },
 ];

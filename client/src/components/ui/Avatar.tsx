@@ -23,7 +23,7 @@ export function Avatar({ src, alt = "", fallback, className = "", fill = false, 
             alt={alt}
             fill
             unoptimized
-            className="rounded-full object-cover"
+            className="rounded-[var(--radius-xl)] object-cover shadow-[var(--shadow-xs)]"
           />
         ) : (
           <Image
@@ -32,17 +32,17 @@ export function Avatar({ src, alt = "", fallback, className = "", fill = false, 
             width={48}
             height={48}
             unoptimized
-            className="rounded-full object-cover"
+            className="rounded-[var(--radius-xl)] object-cover shadow-[var(--shadow-xs)]"
           />
         )
       ) : (
-        <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-sm">
+        <div className="w-full h-full rounded-[var(--radius-xl)] bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-[var(--shadow-sm)]">
           {fallback || "??"}
         </div>
       )}
       {status && (
-        <span className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-gray-900 ${
-          status === "online" ? "bg-green-500" : status === "typing" ? "bg-blue-500 animate-pulse" : "bg-gray-400"
+        <span className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-[var(--radius-full)] border-2 border-[var(--bg-elevated)] ${
+          status === "online" ? "bg-[var(--success)]" : status === "typing" ? "bg-[var(--accent)] animate-pulse" : "bg-[var(--fg-muted)]"
         }`} />
       )}
     </div>

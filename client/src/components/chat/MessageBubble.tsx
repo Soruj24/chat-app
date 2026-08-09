@@ -2,19 +2,12 @@
 
 import { Message } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import {
-  motion,
-  AnimatePresence,
-  useMotionValue,
-  useTransform,
-} from "framer-motion";
-import { CornerUpRight, Heart } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import { MessageContent } from "./message/MessageContent";
 import { MessageQuickReactions } from "./message/MessageQuickReactions";
 import { MessageActionButtons } from "./message/MessageActionButtons";
 import { SwipeToReplyIndicator } from "./message/SwipeToReplyIndicator";
-import { MessageTail } from "./message/MessageTail";
 import { MessageLikeAnimation } from "./message/MessageLikeAnimation";
 import { MessageHeader } from "./message/MessageHeader";
 import { MessageFooter } from "./message/MessageFooter";
@@ -22,9 +15,12 @@ import { useMessageSwipe } from "@/hooks/useMessageSwipe";
 import { useDoubleTap } from "@/hooks/useDoubleTap";
 import Image from "next/image";
 import { getUserColor } from "@/lib/utils";
+import { spring, fadeUp } from "@/lib/animations";
 
 interface MessageBubbleProps {
   message: Message;
+  isGroupStart?: boolean;
+  isGroupEnd?: boolean;
   onImageClick?: (url: string) => void;
   onReply?: (message: Message) => void;
   onForward?: (message: Message) => void;
@@ -41,6 +37,8 @@ interface MessageBubbleProps {
 
 export function MessageBubble({
   message,
+  isGroupStart = true,
+  isGroupEnd = true,
   onImageClick,
   onReply,
   onForward,
@@ -60,18 +58,15 @@ export function MessageBubble({
 
   const { x, replyOpacity, replyScale, handleDragEnd } = useMessageSwipe(
     isMe,
-    () => onReply?.(message),
+    () => onReply?.(message)
   );
   const { handleDoubleTap, showAnimation: showHeart } = useDoubleTap(() =>
-    onLike?.(message),
+    onLike?.(message)
   );
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        quickReactionsRef.current &&
-        !quickReactionsRef.current.contains(event.target as Node)
-      ) {
+      if (quickReactionsRef.current && !quickReactionsRef.current.contains(event.target as Node)) {
         setShowQuickReactions(false);
       }
     };
@@ -81,22 +76,58 @@ export function MessageBubble({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showQuickReactions]);
 
+  const isImage = message.type === "image";
+  const isMedia = isImage || message.type === "video" || message.type === "voice";
+
+  // Bubble radius based on group position and style
+  const getBubbleRadius = () => {
+    if (bubbleStyle === "classic") return "rounded-[var(--radius-lg)]";
+    if (bubbleStyle === "rounded") return "rounded-[var(--radius-3xl)]";
+
+    // Modern style with group-aware corners
+    if (isMe) {
+      if (isGroupStart && isGroupEnd) return "rounded-[var(--radius-2xl)] rounded-br-[var(--radius-sm)]";
+      if (isGroupStart) return "rounded-[var(--radius-2xl)] rounded-br-[var(--radius-sm)] rounded-tr-[var(--radius-2xl)]";
+      if (isGroupEnd) return "rounded-[var(--radius-2xl)] rounded-br-[var(--radius-sm)] rounded-tr-[var(--radius-sm)]";
+      return "rounded-[var(--radius-2xl)] rounded-r-[var(--radius-sm)]";
+    }
+    if (isGroupStart && isGroupEnd) return "rounded-[var(--radius-2xl)] rounded-bl-[var(--radius-sm)]";
+    if (isGroupStart) return "rounded-[var(--radius-2xl)] rounded-bl-[var(--radius-sm)] rounded-tl-[var(--radius-2xl)]";
+    if (isGroupEnd) return "rounded-[var(--radius-2xl)] rounded-bl-[var(--radius-sm)] rounded-tl-[var(--radius-sm)]";
+    return "rounded-[var(--radius-2xl)] rounded-l-[var(--radius-sm)]";
+  };
+
+  // Bubble background color
+  const getBubbleBg = () => {
+    if (isMedia) return "bg-transparent";
+
+    if (isMe) {
+      if (themeColor || accentColor) return "";
+      return "bg-[#10a37f] text-white";
+    }
+    return "bg-white dark:bg-[#1e2c33] text-gray-900 dark:text-gray-100 border border-gray-100 dark:border-gray-700/50";
+  };
+
+  // Spacing: reduce margin when grouped
+  const marginTop = isGroupStart ? "mt-2" : "mt-0.5";
+  const marginBottom = isGroupEnd ? "mb-1" : "mb-0";
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
+      initial="hidden"
+      animate="visible"
+      variants={fadeUp}
+      transition={spring.gentle}
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.2}
+      dragElastic={0.15}
       onDragEnd={handleDragEnd}
       style={{ x }}
-      transition={{
-        duration: 0.3,
-        ease: [0.23, 1, 0.32, 1],
-      }}
       className={cn(
-        "flex w-full mb-2 group px-4 relative touch-pan-y items-start gap-3",
+        "flex w-full px-4 group relative items-end gap-2.5 select-none",
         isMe ? "flex-row-reverse" : "flex-row",
+        marginTop,
+        marginBottom
       )}
       onClick={handleDoubleTap}
       onContextMenu={(e) => {
@@ -104,9 +135,9 @@ export function MessageBubble({
         onContextMenu?.(e, message);
       }}
     >
-      {/* Sender Avatar */}
-      <div className="flex-shrink-0 z-10 mt-0.5">
-        <div className="relative w-9 h-9 rounded-full overflow-hidden ring-1 ring-black/5 dark:ring-white/10 shadow-sm bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+      {/* Sender Avatar - only show for group start */}
+      <div className="flex-shrink-0 w-8 relative" style={{ visibility: isGroupStart ? "visible" : "hidden" }}>
+        <div className="relative w-8 h-8 rounded-[var(--radius-xl)] overflow-hidden bg-[var(--surface-secondary)] flex items-center justify-center shadow-[var(--shadow-xs)]">
           {message.senderAvatar ? (
             <Image
               src={message.senderAvatar}
@@ -118,8 +149,8 @@ export function MessageBubble({
           ) : (
             <div
               className={cn(
-                "w-full h-full flex items-center justify-center bg-gradient-to-br text-white text-xs font-semibold uppercase tracking-wider",
-                getUserColor(message.senderName || "User"),
+                "w-full h-full flex items-center justify-center bg-gradient-to-br text-white text-[11px] font-bold uppercase",
+                getUserColor(message.senderName || "User")
               )}
             >
               {(message.senderName || "U").charAt(0)}
@@ -128,22 +159,20 @@ export function MessageBubble({
         </div>
       </div>
 
+      {/* Spacer for grouped messages */}
+      {!isGroupStart && <div className="w-8 flex-shrink-0" />}
+
       {/* Swipe to reply indicator */}
-      <SwipeToReplyIndicator
-        x={x}
-        replyOpacity={replyOpacity}
-        replyScale={replyScale}
-        isMe={isMe}
-      />
+      <SwipeToReplyIndicator x={x} replyOpacity={replyOpacity} replyScale={replyScale} isMe={isMe} />
 
       <div
         className={cn(
           "flex flex-col relative",
           isMe ? "items-end" : "items-start",
-          "max-w-[75%]",
+          "max-w-[70%] min-w-0"
         )}
       >
-        {/* Like animation heart */}
+        {/* Like animation */}
         <MessageLikeAnimation showHeart={showHeart} />
 
         {/* Quick Reactions Bar */}
@@ -159,44 +188,34 @@ export function MessageBubble({
           )}
         </AnimatePresence>
 
-        {/* Message Actions - Hover only */}
-        <MessageActionButtons
-          message={message}
-          isMe={isMe}
-          showQuickReactions={showQuickReactions}
-          setShowQuickReactions={setShowQuickReactions}
-          onReply={onReply || (() => {})}
-          onForward={onForward || (() => {})}
-        />
+        {/* Action Buttons - hover only */}
+        <div className={cn("transition-opacity duration-150", isGroupEnd ? "opacity-0 group-hover:opacity-100" : "h-0 overflow-hidden")}>
+          <MessageActionButtons
+            message={message}
+            isMe={isMe}
+            showQuickReactions={showQuickReactions}
+            setShowQuickReactions={setShowQuickReactions}
+            onReply={onReply || (() => {})}
+            onForward={onForward || (() => {})}
+          />
+        </div>
 
+        {/* Message Bubble */}
         <div
           className={cn(
-            "shadow-sm relative transition-all duration-200 min-w-[240px]",
-            bubbleStyle === "modern" &&
-              (isMe
-                ? "rounded-[18px] rounded-tr-[4px]"
-                : "rounded-[18px] rounded-tl-[4px]"),
-            bubbleStyle === "classic" && "rounded-lg",
-            bubbleStyle === "rounded" && "rounded-3xl",
-            message.type === "image"
-              ? "bg-transparent shadow-none"
-              : isMe
-                ? !themeColor &&
-                  !accentColor &&
-                  "bg-[#effdde] dark:bg-[#2b4a40] text-[#000000] dark:text-[#ffffff]"
-                : "bg-[#ffffff] dark:bg-[#203239] text-[#000000] dark:text-[#ffffff] border border-[#e6e8ec] dark:border-[#3b4043]",
+            "relative transition-all duration-200 min-w-0 overflow-hidden",
+            "shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)]",
+            "group-hover:shadow-[var(--shadow-md)]",
+            getBubbleRadius(),
+            getBubbleBg(),
+            isMedia ? "" : "max-w-[360px]"
           )}
           style={
-            isMe && (themeColor || accentColor) && message.type !== "image"
+            isMe && (themeColor || accentColor) && !isMedia
               ? { backgroundColor: themeColor || accentColor, color: "#fff" }
               : {}
           }
         >
-          {/* Tail Design */}
-          {message.type !== "image" && bubbleStyle === "modern" && (
-            <MessageTail isMe={isMe} themeColor={themeColor || accentColor} />
-          )}
-
           {/* Message Header (Sender name, Reply, Forwarded) */}
           <MessageHeader
             message={message}
@@ -213,11 +232,10 @@ export function MessageBubble({
             onImageClick={onImageClick}
             themeColor={themeColor}
             fontSize={fontSize}
-            bubbleStyle={bubbleStyle}
           />
 
-          {/* Message Footer (Timestamp, Status, Reactions) - Hide for images as it's overlaid */}
-          {message.type !== "image" && (
+          {/* Message Footer (Timestamp, Status, Reactions) */}
+          {!isMedia && (
             <MessageFooter
               message={message}
               isMe={isMe}

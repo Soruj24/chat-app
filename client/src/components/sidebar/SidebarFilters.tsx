@@ -1,8 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store/store";
+import { motion } from "framer-motion";
 
 interface SidebarFiltersProps {
   activeFilter: string;
@@ -10,9 +9,6 @@ interface SidebarFiltersProps {
 }
 
 export function SidebarFilters({ activeFilter, onFilterChange }: SidebarFiltersProps) {
-  const { user } = useSelector((state: RootState) => state.auth);
-  const accentColor = user?.settings?.accentColor;
-
   const filters = [
     { id: "all", label: "All" },
     { id: "unread", label: "Unread" },
@@ -21,22 +17,31 @@ export function SidebarFilters({ activeFilter, onFilterChange }: SidebarFiltersP
   ] as const;
 
   return (
-    <div className="flex items-center gap-1.5 animate-in fade-in duration-300 overflow-x-auto no-scrollbar pb-1">
-      {filters.map((f) => (
-        <button
-          key={f.id}
-          onClick={() => onFilterChange(f.id)}
-          className={cn(
-            "px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all duration-200 whitespace-nowrap",
-            activeFilter === f.id 
-              ? (!accentColor && "bg-blue-600 text-white shadow-sm shadow-blue-500/20")
-              : "bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
-          )}
-          style={activeFilter === f.id && accentColor ? { backgroundColor: accentColor, color: '#fff', boxShadow: `${accentColor}33 0px 4px 12px` } : {}}
-        >
-          {f.label}
-        </button>
-      ))}
+    <div className="flex items-center gap-1 px-3 pb-3">
+      {filters.map((f) => {
+        const isActive = activeFilter === f.id;
+        return (
+          <button
+            key={f.id}
+            onClick={() => onFilterChange(f.id)}
+            className={cn(
+              "relative px-3 py-1.5 rounded-[var(--radius-lg)] text-[11px] font-semibold transition-all duration-200 whitespace-nowrap",
+              isActive
+                ? "text-[var(--color-primary)]"
+                : "text-[var(--sidebar-text-secondary)] hover:text-[var(--sidebar-text)] hover:bg-[var(--sidebar-hover)]"
+            )}
+          >
+            {isActive && (
+              <motion.div
+                layoutId="sidebar-filter-pill"
+                className="absolute inset-0 rounded-[var(--radius-lg)] bg-[var(--color-primary)]/10 shadow-[var(--shadow-xs)]"
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              />
+            )}
+            <span className="relative z-10">{f.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }

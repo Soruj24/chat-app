@@ -2,6 +2,7 @@
 
 import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
+import { EmptyState, noFiles } from "@/components/empty-states";
 
 interface ChatMediaViewProps {
   allMedia: { id: number; url: string }[];
@@ -27,22 +28,31 @@ export function ChatMediaView({ allMedia, onBack }: ChatMediaViewProps) {
 
       {/* Media Grid */}
       <div className="flex-1 overflow-y-auto p-4 no-scrollbar">
-        <div className="grid grid-cols-3 gap-2">
-          {allMedia.map((item) => (
-            <div 
-              key={item.id} 
-              className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-all border border-gray-100 dark:border-gray-800 hover:scale-[1.02]"
-            >
-              <Image
-                src={item.url}
-                alt=""
-                fill
-                unoptimized
-                className="object-cover"
-              />
-            </div>
-          ))}
-        </div>
+        {allMedia.length === 0 ? (
+          <div className="h-full flex items-center justify-center">
+            <EmptyState
+              {...noFiles()}
+              compact
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-2">
+            {allMedia.map((item) => (
+              <div 
+                key={item.id} 
+                className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-all border border-gray-100 dark:border-gray-800 hover:scale-[1.02]"
+              >
+                <Image
+                  src={item.url}
+                  alt=""
+                  fill
+                  unoptimized
+                  className="object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

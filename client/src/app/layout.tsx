@@ -13,7 +13,6 @@ const geistMono = Geist_Mono({
 });
 
 import Sidebar from "@/components/Sidebar";
-import { TopBar } from "@/components/TopBar";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Providers } from "@/components/Providers";
 
@@ -28,9 +27,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-theme="light">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-hidden h-screen bg-gray-50 dark:bg-black`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-hidden h-screen`}
+        style={{ background: "var(--bg)", color: "var(--fg)" }}
       >
         <ThemeProvider
           attribute="class"
@@ -39,15 +39,14 @@ export default function RootLayout({
           storageKey="chat-theme"
         >
           <Providers>
-            <div className="flex h-full w-full max-w-[1600px] mx-auto bg-white dark:bg-gray-900 shadow-2xl overflow-hidden relative">
-              <div className="flex flex-col w-full h-full">
-                <div className="flex flex-1 overflow-hidden">
-                  <Sidebar />
-                  <main className="flex-1 flex flex-col min-w-0 bg-gray-50 dark:bg-gray-950 relative z-10">
-                    {children}
-                  </main>
-                </div>
-              </div>
+            <div className="flex h-full w-full overflow-hidden relative">
+              <Sidebar />
+              <main
+                className="flex-1 flex flex-col min-w-0 relative z-10"
+                style={{ background: "var(--bg)" }}
+              >
+                {children}
+              </main>
             </div>
           </Providers>
         </ThemeProvider>

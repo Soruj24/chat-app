@@ -2,12 +2,37 @@
 
 import { ArrowLeft, Star } from "lucide-react";
 import { Message, IChat } from "@/lib/types";
+import { EmptyState } from "@/components/empty-states";
+import { motion } from "framer-motion";
 
 interface ChatStarredViewProps {
   starredMessages?: Message[];
   chat: IChat;
   onBack: () => void;
   onMessageClick?: (messageId: string) => void;
+}
+
+function NoStarredIllustration() {
+  return (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <motion.g
+        animate={{ y: [0, -4, 0], transition: { duration: 3, repeat: Infinity, ease: "easeInOut" } }}
+      >
+        <path
+          d="M32 8L39.5 24.5L58 27L44.5 39.5L47.5 58L32 49.5L16.5 58L19.5 39.5L6 27L24.5 24.5L32 8Z"
+          fill="currentColor" opacity="0.1"
+        />
+        <path
+          d="M32 8L39.5 24.5L58 27L44.5 39.5L47.5 58L32 49.5L16.5 58L19.5 39.5L6 27L24.5 24.5L32 8Z"
+          stroke="currentColor" strokeWidth="2" strokeLinejoin="round"
+        />
+      </motion.g>
+      <motion.circle
+        cx="48" cy="14" r="3" fill="currentColor" opacity="0.2"
+        animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2], transition: { duration: 2, repeat: Infinity } }}
+      />
+    </svg>
+  );
 }
 
 export function ChatStarredView({ starredMessages, chat, onBack, onMessageClick }: ChatStarredViewProps) {
@@ -48,10 +73,13 @@ export function ChatStarredView({ starredMessages, chat, onBack, onMessageClick 
             </div>
           ))
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-center p-6 opacity-40">
-            <Star className="w-12 h-12 mb-4" />
-            <p className="text-sm font-medium">No starred messages yet</p>
-            <p className="text-xs mt-1">Star important messages to find them easily later</p>
+          <div className="h-full flex items-center justify-center">
+            <EmptyState
+              illustration={<NoStarredIllustration />}
+              title="No starred messages yet"
+              description="Star important messages to find them easily later."
+              compact
+            />
           </div>
         )}
       </div>
