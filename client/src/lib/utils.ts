@@ -5,6 +5,46 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Class Variance Authority — lightweight inline implementation.
+ * Usage: const buttonVariants = cva("base-classes", { variants: { ... }, defaultVariants: { ... } })
+ */
+type VariantsConfig<V extends string, DV extends string> = {
+  variants?: Record<V, Record<string, string>>;
+  defaultVariants?: Record<DV, string>;
+};
+
+export function cva<
+  V extends string = never,
+  DV extends string = never,
+>(
+  base: string,
+  config?: VariantsConfig<V, DV>,
+) {
+  return (props?: Record<V | DV, string | boolean | undefined> & { className?: string }) => {
+    let classes = base;
+    if (config?.variants && props) {
+      for (const variantGroup of Object.keys(config.variants) as V[]) {
+        const value = props[variantGroup];
+        if (value && typeof value === "string" && config.variants[variantGroup][value]) {
+          classes += " " + config.variants[variantGroup][value];
+        }
+      }
+    }
+    if (config?.defaultVariants && props) {
+      for (const key of Object.keys(config.defaultVariants) as DV[]) {
+        if (props[key] === undefined && config.defaultVariants[key]) {
+          classes += " " + config.defaultVariants[key];
+        }
+      }
+    }
+    if (props?.className) {
+      classes += " " + props.className;
+    }
+    return cn(classes);
+  };
+}
+
 export function sanitizeAvatar(avatar?: string): string | undefined {
   if (!avatar || avatar.trim() === "" || avatar === "null" || avatar === "undefined") {
     return undefined;

@@ -199,6 +199,67 @@
   --z-popover: 500;
   --z-tooltip: 600;
   --z-toast: 700;
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     UNIFIED DESIGN SYSTEM — shadcn/ui-compatible tokens
+     ═══════════════════════════════════════════════════════════════════════ */
+
+  /* Background & Foreground */
+  --background: #ffffff;
+  --foreground: #0f172a;
+
+  /* Muted */
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+
+  /* Card */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+
+  /* Popover */
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+
+  /* Primary */
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+
+  /* Secondary */
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+
+  /* Accent */
+  --accent-ds: #f1f5f9;
+  --accent-ds-foreground: #0f172a;
+
+  /* Destructive */
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  /* Border & Input */
+  --border-ds: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #3b82f6;
+
+  /* Chart colors */
+  --chart-1: #3b82f6;
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #ef4444;
+  --chart-5: #8b5cf6;
+
+  /* Sidebar (shadcn alias) */
+  --sidebar-background: #f8fafc;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #3b82f6;
+
+  /* Radius (shadcn standard) */
+  --radius-ds: 0.5rem;
 }
 
 /* ─── Dark Theme ─────────────────────────────────────────────────────────── */
@@ -317,6 +378,35 @@
   --profile-media-hover-overlay: rgba(0, 0, 0, 0.4);
   --profile-empty-state-text: #64748b;
   --profile-empty-state-icon: #334155;
+
+  /* Unified Design System Tokens */
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --card: #1e293b;
+  --card-foreground: #f1f5f9;
+  --popover: #1e293b;
+  --popover-foreground: #f1f5f9;
+  --primary: #60a5fa;
+  --primary-foreground: #0f172a;
+  --secondary: #1e293b;
+  --secondary-foreground: #f1f5f9;
+  --accent-ds: #1e293b;
+  --accent-ds-foreground: #f1f5f9;
+  --destructive: #f87171;
+  --destructive-foreground: #ffffff;
+  --border-ds: #334155;
+  --input: #334155;
+  --ring: #60a5fa;
+  --sidebar-background: #0f172a;
+  --sidebar-foreground: #f1f5f9;
+  --sidebar-primary: #60a5fa;
+  --sidebar-primary-foreground: #0f172a;
+  --sidebar-accent: #1e293b;
+  --sidebar-accent-foreground: #f1f5f9;
+  --sidebar-border: #334155;
+  --sidebar-ring: #60a5fa;
 }
 
 /* ─── Midnight Theme ─────────────────────────────────────────────────────── */
@@ -417,6 +507,35 @@
   --profile-media-hover-overlay: rgba(0, 0, 0, 0.5);
   --profile-empty-state-text: #64748b;
   --profile-empty-state-icon: #1e2d4a;
+
+  /* Unified Design System Tokens */
+  --background: #0c1222;
+  --foreground: #e2e8f0;
+  --muted: #111827;
+  --muted-foreground: #94a3b8;
+  --card: #162032;
+  --card-foreground: #e2e8f0;
+  --popover: #162032;
+  --popover-foreground: #e2e8f0;
+  --primary: #f59e0b;
+  --primary-foreground: #0c1222;
+  --secondary: #1e293b;
+  --secondary-foreground: #e2e8f0;
+  --accent-ds: #1e2d4a;
+  --accent-ds-foreground: #e2e8f0;
+  --destructive: #f87171;
+  --destructive-foreground: #ffffff;
+  --border-ds: #1e2d4a;
+  --input: #1e2d4a;
+  --ring: #f59e0b;
+  --sidebar-background: #0c1222;
+  --sidebar-foreground: #e2e8f0;
+  --sidebar-primary: #f59e0b;
+  --sidebar-primary-foreground: #0c1222;
+  --sidebar-accent: #1e2d4a;
+  --sidebar-accent-foreground: #e2e8f0;
+  --sidebar-border: #1e2d4a;
+  --sidebar-ring: #f59e0b;
 }
 
 /* ─── Glass Theme ────────────────────────────────────────────────────────── */
@@ -517,6 +636,35 @@
   --profile-media-hover-overlay: rgba(0, 0, 0, 0.4);
   --profile-empty-state-text: #64748b;
   --profile-empty-state-icon: rgba(255, 255, 255, 0.1);
+
+  /* Unified Design System Tokens */
+  --background: #0f0f23;
+  --foreground: #e2e8f0;
+  --muted: #16162a;
+  --muted-foreground: #94a3b8;
+  --card: rgba(30, 30, 58, 0.8);
+  --card-foreground: #e2e8f0;
+  --popover: rgba(30, 30, 58, 0.9);
+  --popover-foreground: #e2e8f0;
+  --primary: #06b6d4;
+  --primary-foreground: #0f0f23;
+  --secondary: rgba(255, 255, 255, 0.06);
+  --secondary-foreground: #e2e8f0;
+  --accent-ds: rgba(255, 255, 255, 0.06);
+  --accent-ds-foreground: #e2e8f0;
+  --destructive: #f87171;
+  --destructive-foreground: #ffffff;
+  --border-ds: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.1);
+  --ring: #06b6d4;
+  --sidebar-background: rgba(15, 15, 35, 0.85);
+  --sidebar-foreground: #e2e8f0;
+  --sidebar-primary: #06b6d4;
+  --sidebar-primary-foreground: #0f0f23;
+  --sidebar-accent: rgba(255, 255, 255, 0.06);
+  --sidebar-accent-foreground: #e2e8f0;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #06b6d4;
 }
 
 /* ─── Minimal Theme ──────────────────────────────────────────────────────── */
@@ -617,6 +765,35 @@
   --profile-media-hover-overlay: rgba(0, 0, 0, 0.15);
   --profile-empty-state-text: #999999;
   --profile-empty-state-icon: #e5e5e5;
+
+  /* Unified Design System Tokens */
+  --background: #ffffff;
+  --foreground: #111111;
+  --muted: #fafafa;
+  --muted-foreground: #737373;
+  --card: #ffffff;
+  --card-foreground: #111111;
+  --popover: #ffffff;
+  --popover-foreground: #111111;
+  --primary: #111111;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #111111;
+  --accent-ds: #f5f5f5;
+  --accent-ds-foreground: #111111;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border-ds: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: #111111;
+  --sidebar-background: #ffffff;
+  --sidebar-foreground: #111111;
+  --sidebar-primary: #111111;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f5f5f5;
+  --sidebar-accent-foreground: #111111;
+  --sidebar-border: #e5e5e5;
+  --sidebar-ring: #111111;
 }
 
 /* ─── Slack Theme ────────────────────────────────────────────────────────── */
@@ -717,6 +894,35 @@
   --profile-media-hover-overlay: rgba(0, 0, 0, 0.15);
   --profile-empty-state-text: #868686;
   --profile-empty-state-icon: #dddddd;
+
+  /* Unified Design System Tokens */
+  --background: #f8f8f8;
+  --foreground: #1d1c1d;
+  --muted: #f0f0f0;
+  --muted-foreground: #616061;
+  --card: #ffffff;
+  --card-foreground: #1d1c1d;
+  --popover: #ffffff;
+  --popover-foreground: #1d1c1d;
+  --primary: #4a154b;
+  --primary-foreground: #ffffff;
+  --secondary: #f0f0f0;
+  --secondary-foreground: #1d1c1d;
+  --accent-ds: #f3e8f9;
+  --accent-ds-foreground: #4a154b;
+  --destructive: #e01e5a;
+  --destructive-foreground: #ffffff;
+  --border-ds: #dddddd;
+  --input: #dddddd;
+  --ring: #4a154b;
+  --sidebar-background: #3F0E40;
+  --sidebar-foreground: #f8f8f8;
+  --sidebar-primary: #ffffff;
+  --sidebar-primary-foreground: #3F0E40;
+  --sidebar-accent: rgba(255, 255, 255, 0.12);
+  --sidebar-accent-foreground: #f8f8f8;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #ffffff;
 }
 
 /* ─── Discord Theme ──────────────────────────────────────────────────────── */
@@ -817,6 +1023,35 @@
   --profile-media-hover-overlay: rgba(0, 0, 0, 0.4);
   --profile-empty-state-text: #949ba4;
   --profile-empty-state-icon: #3f4147;
+
+  /* Unified Design System Tokens */
+  --background: #313338;
+  --foreground: #dbdee1;
+  --muted: #2b2d31;
+  --muted-foreground: #949ba4;
+  --card: #2b2d31;
+  --card-foreground: #dbdee1;
+  --popover: #2b2d31;
+  --popover-foreground: #dbdee1;
+  --primary: #5865f2;
+  --primary-foreground: #ffffff;
+  --secondary: #2b2d31;
+  --secondary-foreground: #dbdee1;
+  --accent-ds: rgba(88, 101, 242, 0.15);
+  --accent-ds-foreground: #dbdee1;
+  --destructive: #f23f43;
+  --destructive-foreground: #ffffff;
+  --border-ds: #3f4147;
+  --input: #3f4147;
+  --ring: #5865f2;
+  --sidebar-background: #2b2d31;
+  --sidebar-foreground: #dbdee1;
+  --sidebar-primary: #5865f2;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(88, 101, 242, 0.15);
+  --sidebar-accent-foreground: #dbdee1;
+  --sidebar-border: #3f4147;
+  --sidebar-ring: #5865f2;
 }
 
 /* ─── ChatGPT Theme ──────────────────────────────────────────────────────── */
@@ -917,6 +1152,35 @@
   --profile-media-hover-overlay: rgba(0, 0, 0, 0.4);
   --profile-empty-state-text: #8e8e8e;
   --profile-empty-state-icon: #424242;
+
+  /* Unified Design System Tokens */
+  --background: #212121;
+  --foreground: #ececec;
+  --muted: #2f2f2f;
+  --muted-foreground: #8e8e8e;
+  --card: #2f2f2f;
+  --card-foreground: #ececec;
+  --popover: #2f2f2f;
+  --popover-foreground: #ececec;
+  --primary: #10a37f;
+  --primary-foreground: #ffffff;
+  --secondary: #2f2f2f;
+  --secondary-foreground: #ececec;
+  --accent-ds: rgba(16, 163, 127, 0.12);
+  --accent-ds-foreground: #ececec;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border-ds: #424242;
+  --input: #424242;
+  --ring: #10a37f;
+  --sidebar-background: #171717;
+  --sidebar-foreground: #ececec;
+  --sidebar-primary: #10a37f;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(16, 163, 127, 0.1);
+  --sidebar-accent-foreground: #ececec;
+  --sidebar-border: #2f2f2f;
+  --sidebar-ring: #10a37f;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -997,11 +1261,61 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   THEME
+   THEME — Tailwind CSS v4 token mapping
    ═══════════════════════════════════════════════════════════════════════════ */
 @theme inline {
-  --color-background: var(--bg);
-  --color-foreground: var(--fg);
+  /* Core */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  /* Primary */
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  /* Secondary */
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  /* Accent */
+  --color-accent: var(--accent-ds);
+  --color-accent-foreground: var(--accent-ds-foreground);
+
+  /* Destructive */
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  /* Border / Input / Ring */
+  --color-border: var(--border-ds);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Chart */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Sidebar */
+  --color-sidebar-background: var(--sidebar-background);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Radius */
+  --radius-ds: var(--radius-ds);
+
+  /* Font */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -1063,6 +1377,76 @@ body {
 
 .no-transition {
   transition: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UNIFIED DESIGN SYSTEM — Component Utility Classes
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Focus Ring ──────────────────────────────────────────────────────── */
+.focus-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2;
+}
+
+/* ─── Glass Effect ────────────────────────────────────────────────────── */
+.glass-ds {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+}
+
+/* ─── Surface Variants ────────────────────────────────────────────────── */
+.surface-default { background: var(--background); }
+.surface-muted { background: var(--muted); }
+.surface-card { background: var(--card); }
+.surface-popover { background: var(--popover); }
+
+/* ─── Text Variants ───────────────────────────────────────────────────── */
+.text-default { color: var(--foreground); }
+.text-muted { color: var(--muted-foreground); }
+.text-primary { color: var(--primary); }
+.text-destructive { color: var(--destructive); }
+
+/* ─── Border Variants ─────────────────────────────────────────────────── */
+.border-default { border-color: var(--border-ds); }
+.border-input { border-color: var(--input); }
+
+/* ─── Animation Utilities ─────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.2s ease-out;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.2s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.15s ease-out;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

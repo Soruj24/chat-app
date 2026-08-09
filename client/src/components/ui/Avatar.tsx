@@ -1,50 +1,67 @@
 "use client";
 
-import Image from "next/image";
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
-interface AvatarProps {
+const Avatar = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement> & {
   src?: string;
   alt?: string;
   fallback?: string;
-  className?: string;
-  fill?: boolean;
-  status?: "online" | "offline" | "typing";
-}
+  size?: "sm" | "md" | "lg" | "xl";
+}>(({ className, src, alt, fallback, size = "md", ...props }, ref) => {
+  const sizeClasses = {
+    sm: "h-8 w-8 text-xs",
+    md: "h-10 w-10 text-sm",
+    lg: "h-12 w-12 text-base",
+    xl: "h-16 w-16 text-lg",
+  };
 
-export function Avatar({ src, alt = "", fallback, className = "", fill = false, status }: AvatarProps) {
-  const hasValidSrc = src && src.trim() !== "" && src.trim() !== "null" && src.trim() !== "undefined";
+  const initials = fallback || alt?.charAt(0)?.toUpperCase() || "?";
 
   return (
-    <div className={`relative ${className}`}>
-      {hasValidSrc ? (
-        fill ? (
-          <Image
-            src={src}
-            alt={alt}
-            fill
-            unoptimized
-            className="rounded-[var(--radius-xl)] object-cover shadow-[var(--shadow-xs)]"
-          />
-        ) : (
-          <Image
-            src={src}
-            alt={alt}
-            width={48}
-            height={48}
-            unoptimized
-            className="rounded-[var(--radius-xl)] object-cover shadow-[var(--shadow-xs)]"
-          />
-        )
-      ) : (
-        <div className="w-full h-full rounded-[var(--radius-xl)] bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-[var(--shadow-sm)]">
-          {fallback || "??"}
-        </div>
+    <div
+      ref={ref}
+      className={cn(
+        "relative flex shrink-0 overflow-hidden rounded-full",
+        sizeClasses[size],
+        className
       )}
-      {status && (
-        <span className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-[var(--radius-full)] border-2 border-[var(--bg-elevated)] ${
-          status === "online" ? "bg-[var(--success)]" : status === "typing" ? "bg-[var(--accent)] animate-pulse" : "bg-[var(--fg-muted)]"
-        }`} />
+      {...props}
+    >
+      {src ? (
+        <img
+          src={src}
+          alt={alt || ""}
+          className="aspect-square h-full w-full object-cover"
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] font-medium">
+          {initials}
+        </div>
       )}
     </div>
   );
-}
+});
+Avatar.displayName = "Avatar";
+
+const AvatarGroup = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement> & {
+  max?: number;
+}>(({ className, max = 3, children, ...props }, ref) => {
+  const childArray = React.Children.toArray(children);
+  const visible = childArray.slice(0, max);
+  const remaining = childArray.length - max;
+
+  return (
+    <div ref={ref} className={cn("flex -space-x-2", className)} {...props}>
+      {visible}
+      {remaining > 0 && (
+        <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-[var(--background)] bg-[var(--muted)] text-[var(--muted-foreground)] text-xs font-medium">
+          +{remaining}
+        </div>
+      )}
+    </div>
+  );
+});
+AvatarGroup.displayName = "AvatarGroup";
+
+export { Avatar, AvatarGroup };
